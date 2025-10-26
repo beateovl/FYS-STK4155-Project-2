@@ -1,56 +1,53 @@
 import autograd.numpy as np
+from autograd import elementwise_grad
 
-# --- 1. Sigmoid Function and Derivative ---
+"Taken from week 43 lecture notes."
 
-def sigmoid(z):
-    """
-    The logistic sigmoid activation function, defined as 1 / (1 + e^-z).
-    This function is commonly used in neural networks.
-    """
-    # Implemented using the standard logistic function definition
-    return 1.0 / (1.0 + np.exp(-z)) 
+# --- Activation Functions ---
+# Identity
+def identity(X):
+    return X
 
-def dsigmoid(z):
-    """
-    The derivative of the sigmoid function, calculated as a * (1 - a),
-    where a = sigmoid(z).
-    """
-    a = sigmoid(z)
-    # The derivative expression is a(1 - a)
-    return a * (1 - a)
+# Sigmoid
+def sigmoid(X):
+    try:
+        return 1.0 / (1 + np.exp(-X))
+    except FloatingPointError:
+        return np.where(X > np.zeros(X.shape), np.ones(X.shape), np.zeros(X.shape))
 
-# --- 2. ReLU Function and Derivative ---
+# Softmax
+def softmax(X):
+    X = X - np.max(X, axis=-1, keepdims=True)
+    delta = 10e-10
+    return np.exp(X) / (np.sum(np.exp(X), axis=-1, keepdims=True) + delta)
 
-def relu(z):
-    """
-    The Rectified Linear Unit (ReLU) activation function, defined as max(0, z).
-    ReLU does not saturate for positive values, alleviating the vanishing 
-    gradient problem.
-    """
-    # Uses np.where to return z if z > 0, else 0
-    return np.where(z > 0, z, 0) 
+# RELU
+def RELU(X):
+    return np.where(X > np.zeros(X.shape), X, np.zeros(X.shape))
 
-def drelu(z):
-    """
-    The derivative of the ReLU function, which is 1 if z > 0, and 0 otherwise.
-    """
-    # Returns 1 if z > 0, and 0 otherwise
-    return np.where(z > 0, 1, 0) 
 
-# --- 3. Leaky ReLU Function and Derivative ---
+# Leaky RELU
+def LRELU(X):
+    delta = 10e-4
+    return np.where(X > np.zeros(X.shape), X, delta * X)
 
-def leaky_relu(z, a=0.01):
-    """
-    The Leaky ReLU (LRELU) activation function [13].
-    It uses a small slope 'a' for negative inputs to address the 'dying ReLU' problem.
-    """
-    # If z > 0, returns z; otherwise, returns a * z.
-    return np.where(z > np.zeros(z.shape), z, a * z)
 
-def dleaky_relu(z, a=0.01):
-    """
-    The derivative of the Leaky ReLU function, which is 1 for positive inputs 
-    and the slope 'a' for non-positive inputs. 
-    """
-    # If z > 0, returns 1; otherwise, returns 'a'.
-    return np.where(z > 0, 1, a)
+# Derivatives of Activation Functions
+def derivate(func):
+    if func.__name__ == "RELU":
+
+        def func(X):
+            return np.where(X > 0, 1, 0)
+
+        return func
+
+    elif func.__name__ == "LRELU":
+
+        def func(X):
+            delta = 10e-4
+            return np.where(X > 0, 1, delta)
+
+        return func
+
+    else:
+        return elementwise_grad(func)
