@@ -42,9 +42,10 @@ class NeuralNetwork:
         # Create layers (weights and biases)
         self.layers = self._create_layers_batch(network_input_size, layer_output_sizes)
 
+
     def _create_layers_batch(self, network_input_size, layer_output_sizes):
         """
-        Creates layers based on the batched input approach (W shape: Input size, Output size) [3, 4].
+        Creates layers based on the batched input approach (W shape: Input size, Output size).
         """
         layers = []
         in_size = self.network_input_size
@@ -65,7 +66,7 @@ class NeuralNetwork:
 
     def predict(self, inputs):
         """
-        Simple feed forward pass for batched inputs, returning the final activation [4, 8].
+        Simple feed forward pass for batched inputs, returning the final activation.
         """
         a = inputs
         # Iterate over stored layers and activation functions
@@ -75,6 +76,7 @@ class NeuralNetwork:
             a = activation_func(z)
         return a
 
+# Compute cost with optional L1/L2 regularization
     def cost(self, inputs, targets):
         pred = self.predict(inputs)
         base = self.cost_fun(pred, targets)
@@ -89,23 +91,23 @@ class NeuralNetwork:
     def _feed_forward_saver(self, inputs):
         """
         Performs the batched feed-forward pass while saving intermediate layer inputs (a) 
-        and weighted sums (z) for backpropagation [11, 12].
+        and weighted sums (z) for backpropagation.
         """
         layer_inputs = []
         zs = []
         a = inputs
         
         for (W, b), activation_func in zip(self.layers, self.activation_funcs):
-            layer_inputs.append(a) # Input activation (a) before current layer [12]
-            z = a @ W + b          # Weighted sum [10]
+            layer_inputs.append(a) # Input activation (a) before current layer 
+            z = a @ W + b          # Weighted sum 
             a = activation_func(z)
             zs.append(z)
         
-        return layer_inputs, zs, a # Returns saved data and final prediction [12]
+        return layer_inputs, zs, a # Returns saved data and final prediction
 
     #backpropagation
     def compute_gradient(self, inputs, targets):
-        # Forward pass with caches (your names)
+        # Forward pass to get saved activations and weighted sums
         a_matrices, z_matrices, predict_batch = self._feed_forward_saver(inputs)
         batch_size = inputs.shape[0]
         n_layers = len(self.layers)
@@ -113,83 +115,88 @@ class NeuralNetwork:
 
         layer_grads = [(np.zeros_like(W), np.zeros_like(b)) for (W, b) in self.layers]
 
-        # ----- Output layer delta -----
+        # Output layer  
         if self.classification and self.activation_funcs[L].__name__.lower() == "softmax":
-            delta = predict_batch - targets
+            delta = predict_batch - targets # Cross-entropy with softmax simplification
         else:
-            d_act_L = self.activation_ders[L](z_matrices[L])
+            d_act_L = self.activation_ders[L](z_matrices[L]) 
             dC_dpred = self.cost_der(predict_batch, targets)   # same shape as predict_batch
-            delta = dC_dpred * d_act_L
+            delta = dC_dpred * d_act_L 
 
         # Grad for output layer (L)
-        dW_L = a_matrices[L].T @ delta
+        dW_L = a_matrices[L].T @ delta 
         db_L = np.sum(delta, axis=0)
 
         # L1/L2 on weights only (not biases)
-        W_L, _ = self.layers[L]
-        if getattr(self, "l2", 0.0) != 0.0:
-            dW_L += self.l2 * W_L
-        if getattr(self, "l1", 0.0) != 0.0:
-            dW_L += self.l1 * np.sign(W_L)
+        W_L, _ = self.layers[L] # Get weights of output layer
+        if getattr(self, "l2", 0.0) != 0.0: # Add L2 regularization term
+            dW_L += self.l2 * W_L # L2 gradient
+        if getattr(self, "l1", 0.0) != 0.0: # Add L1 regularization term
+            dW_L += self.l1 * np.sign(W_L) # L1 gradient
 
-        layer_grads[L] = (dW_L, db_L)
+        layer_grads[L] = (dW_L, db_L) # Store output layer gradients
 
-        # ----- Hidden layers: backprop -----
+        # Hidden layers
+        # Iterate backwards through layers
         for i in range(L - 1, -1, -1):
-            W_next, _ = self.layers[i + 1]
-            d_act_i = self.activation_ders[i](z_matrices[i])
-            delta = (delta @ W_next.T) * d_act_i
+            W_next, _ = self.layers[i + 1] # Weights of next layer
+            d_act_i = self.activation_ders[i](z_matrices[i]) # Derivative of activation at layer i
+            delta = (delta @ W_next.T) * d_act_i # Backpropagate delta
 
-            dW_i = a_matrices[i].T @ delta
-            db_i = np.sum(delta, axis=0)
+            dW_i = a_matrices[i].T @ delta # Gradient w.r.t. weights
+            db_i = np.sum(delta, axis=0) # Gradient w.r.t. biases
 
-            W_i, _ = self.layers[i]
-            if getattr(self, "l2", 0.0) != 0.0:
-                dW_i += self.l2 * W_i
-            if getattr(self, "l1", 0.0) != 0.0:
-                dW_i += self.l1 * np.sign(W_i)
+            W_i, _ = self.layers[i] # Weights of current layer
+            # L1/L2 regularization
+            if getattr(self, "l2", 0.0) != 0.0: # Add L2 regularization term
+                dW_i += self.l2 * W_i # L2 gradient
+            if getattr(self, "l1", 0.0) != 0.0: # Add L1 regularization term
+                dW_i += self.l1 * np.sign(W_i) # L1 gradient
 
-            layer_grads[i] = (dW_i, db_i)
+            layer_grads[i] = (dW_i, db_i) # Store gradients
 
-        return layer_grads
+        return layer_grads  
 
 
         
 
     def update_weights(self, layer_grads, learning_rate):
         """
-        Applies gradients directly, simulating a basic Gradient Descent update (P -= eta * Gradient) [16].
-        Note: In real use, an external scheduler (like Adam or RMSprop) would manage the update steps.
+        Applies gradients directly, simulating a basic Gradient Descent.
         """
-        for k in range(len(self.layers)):
-            W, b = self.layers[k]
-            W_g, b_g = layer_grads[k]
-            
-            # Update rule: P -= learning_rate * Gradient [16]
-            W -= learning_rate * W_g
-            b -= learning_rate * b_g
-            
-            self.layers[k] = (W, b)
 
+        # Iterate over layers and their corresponding gradients
+        for k in range(len(self.layers)):
+            W, b = self.layers[k] # Current weights and biases
+            W_g, b_g = layer_grads[k] # Corresponding gradients
+
+            # Update rule: P -= learning_rate * Gradient
+            W -= learning_rate * W_g # Update weights
+            b -= learning_rate * b_g # Update biases
+
+            self.layers[k] = (W, b) # Store updated parameters
+
+# Reset weights to initial random state
     def reset_weights(self):
         if self.seed is not None:
             np.random.seed(self.seed)
         pass 
 
-
+# Train the network with batched inputs and optimizer
     def fit(
         self,
         X: np.ndarray,
         t: np.ndarray,
-        scheduler: Scheduler,       # The optimizer instance (Constant, Adam, etc.)
+        scheduler: Scheduler,       # The optimizer 
         batches: int = 1,           # Number of batches (1 for standard GD)
         epochs: int = 100,
         lam: float = 0,
         l1=None,
         l2=None,
     ):
-        if l2 is None and lam is not None:
-            l2 = float(lam)
+        # Set regularization parameters
+        if l2 is None and lam is not None: 
+            l2 = float(lam) 
         if l1 is not None:
             self.l1 = float(l1)
         if l2 is not None:
@@ -197,41 +204,41 @@ class NeuralNetwork:
 
         N_samples = X.shape[0]
 
-        # Treat `batches` as the requested number of mini-batches per epoch
+        # Treat batches as the requested number of mini-batches per epoch
         batches = max(1, batches)
-        batch_size = max(1, int(np.ceil(N_samples / batches)))
+        batch_size = max(1, int(np.ceil(N_samples / batches))) # Size of each mini-batch
 
-        # One scheduler per param (keep your copies)
+        # One scheduler per parameter set (weights and biases) per layer
         schedulers_W = [copy(scheduler) for _ in self.layers]
         schedulers_b = [copy(scheduler) for _ in self.layers]
 
-        train_errors = np.full(epochs, np.nan)
-        val_errors   = np.full(epochs, np.nan)
+        train_errors = np.full(epochs, np.nan) # Store training errors per epoch
+        #val_errors   = np.full(epochs, np.nan) 
 
+# Main training loop
         for epoch in range(epochs):
-            # Do NOT reset optimizers each epoch; they need their running moments/history
-            # for sch in schedulers_W + schedulers_b: sch.reset()  # <-- remove this
 
             shuffled_indices = np.random.permutation(N_samples)
 
-            # Single pass over the data in `batches` chunks
+            # Single pass over the data in mini-batches
+            # Iterate over mini-batches
             for start_index in range(0, N_samples, batch_size):
                 end_index = min(start_index + batch_size, N_samples)
                 batch_indices = shuffled_indices[start_index:end_index]
 
-                X_batch = X[batch_indices]
+                X_batch = X[batch_indices] 
                 t_batch = t[batch_indices]
 
-                layer_grads = self.compute_gradient(X_batch, t_batch)
-
+                layer_grads = self.compute_gradient(X_batch, t_batch) 
+# Update weights using optimizer
                 for k in range(len(self.layers)):
-                    W, b = self.layers[k]
-                    W_g, b_g = layer_grads[k]
-                    W_change = schedulers_W[k].update_change(W_g)
-                    b_change = schedulers_b[k].update_change(b_g)
-                    W -= W_change
-                    b -= b_change
-                    self.layers[k] = (W, b)
+                    W, b = self.layers[k] # Current weights and biases
+                    W_g, b_g = layer_grads[k] # Corresponding gradients
+                    W_change = schedulers_W[k].update_change(W_g) # Get weight update from scheduler
+                    b_change = schedulers_b[k].update_change(b_g) # Get bias update from scheduler
+                    W -= W_change # Update weights
+                    b -= b_change # Update biases
+                    self.layers[k] = (W, b) # Store updated parameters
 
             # once per epoch
             train_errors[epoch] = self.cost(X, t)
@@ -243,9 +250,10 @@ class NeuralNetwork:
     def autograd_compliant_predict(self, layers, inputs):
         """
         Feed forward pass designed to be differentiable by Autograd by accepting 
-        the layers parameter explicitly [18].
+        the layers parameter explicitly.
         """
         a = inputs
+        # Iterate over provided layers and activation functions
         for (W, b), activation_func in zip(layers, self.activation_funcs):
             z = np.matmul(a, W) + b
             a = activation_func(z)
@@ -253,15 +261,15 @@ class NeuralNetwork:
 
     def autograd_gradient(self, inputs, targets):
         """
-        Uses autograd.grad to compute the gradients of the cost function w.r.t. the layers [16, 19].
+        Uses autograd.grad to compute the gradients of the cost function w.r.t. the layers.
         """
         # Define a cost wrapper function compliant with autograd's expectation 
-        # (layers must be one of the function arguments being differentiated) [19]
+        # (layers must be one of the function arguments being differentiated)
         def cost_autograd(layers, inputs, targets):
             predict = self.autograd_compliant_predict(layers, inputs)
             return self.cost_fun(predict, targets)
 
-        # Autograd differentiates w.r.t. the first argument (index 0), which is `layers` [19].
+        # Autograd differentiates w.r.t. the first argument (index 0), which is layers.
         gradient_func = grad(cost_autograd, 0) 
         
         # Calculate gradients
