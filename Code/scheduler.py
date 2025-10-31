@@ -2,9 +2,10 @@ import autograd.numpy as np
 
 "Taken from week 43 lecture notes."
 
+
 class Scheduler:
     """
-    Abstract class for Schedulers
+    Abstract class for Schedulers. Defines the interface for learning rate schedulers.
     """
 
     def __init__(self, eta):
