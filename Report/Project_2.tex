@@ -1,0 +1,87 @@
+\documentclass[amssymb,twocolumn,aps]{revtex4}
+
+% allows special characters (including æøå)
+\usepackage[utf8]{inputenc}
+%\usepackage [norsk]{babel} %if you write norwegian
+\usepackage[english]{babel}  %if you write english
+
+\usepackage{physics,amssymb}  % mathematical symbols (physics imports amsmath)
+\usepackage{graphicx}         % include graphics such as plots
+\usepackage[table]{xcolor}
+\usepackage{xcolor}           % set colors
+\usepackage{hyperref}         % automagic cross-referencing 
+\usepackage{float}			  % force placement of tables and figures
+
+\begin{document}
+	
+\title{Developing and Evaluating Feed-Forward Neural Networks for Regression and Classification. \\
+    \normalsize FYS-STK4155}
+\date{\today}               
+\author{Selma Beate Øvland}
+\affiliation{University of Oslo}
+
+\newpage
+	
+\begin{abstract}
+
+The goal of this project was to understand how feed-forward neural networks (FFNNs) learn and to compare their performance with that of our earlier regression methods from Project 1 and libraries such as scikit-learn, using the nonlinear Runge function. We also tested multiclass classification using the MNIST datasets. For this, we developed our own neural network code, incorporating forward propagation, backpropagation, and various optimizers, activations, and regularization terms. For the regression method, we used one and two layers, with 50 and 100 hidden nodes.\\
+
+Our results show that neural networks outperform Ordinary least squares regression method on the Runge function, especially with two hidden layers and the Adam optimizer. Our results show a mean-squared error (MSE) for our model down to $\approx 3 x 10^{-5}$, compared to $\approx 6.9 x 10^{-2}$ for OLS. Adam and RMSProp trained faster and reached a lower error than plain gradient descent (GD). ReLU and LReLU activations helped prevent slow convergence, while Sigmoid worked but trained more slowly. L2 regularization improved stability and reduced overfitting for deeper networks. \\
+
+For MNIST classification, our model reached a number $\approx 96$ \% accuracy, while Scikit-learn's MLP achieved $\approx 97$ \% accuracy, effectively competing on performance. Overall, we observe that neural network implementation offers significant benefits for nonlinear tasks, and the choice of optimizer and activation function has a substantial impact on training quality. 
+
+\end{abstract}
+
+
+\maketitle
+
+\section{Introduction}
+A central challenge in machine learning today is designing models that can both capture nonlinear relationships in data and generalize effectively to unseen samples. From Project 1, we saw that linear and polynomial regression models work well for smooth functions but are limited when the complexity increases due to numerical instability and overfitting if not properly regularized. Neural networks can address these limitations by learning layers of patterns, where the first layer learns the simplest features and subsequent layers stack on top, building complexity. We also meet challenges with neural networks, related to what we saw in Project 1, on how to optimize our algorithm with learning rate, optimizers, and, new to this method, activations. The methods and techniques we studied in Project 1 form the basis of our implementation of neural networks. We rely on the iterative gradient methods explored earlier and focus on hyperparameter selection to improve model performance.
+
+We look at both regression and classification problems and revisit the Runge function from Project 1: 
+
+\begin{equation}
+    f(x) = \frac{1}{1 + 25x^2}
+    \label{eq:runge}
+\end{equation}
+
+Using our best performance results from Project 1, we compare them to our results using neural networks, where we explore iterative gradient methods, optimizers, and regularization terms in a similar manner to control performance. The goal is to determine whether we observe an improvement in MSE for neural networks. 
+
+The classification implementation focuses on decision boundaries for different classes. Here, we evaluate the model using the softmax cross-entropy loss (our "MSE" for classification) and evaluate its performance through classification accuracy, which assesses how well our model can separate multiple classes. We also compare our model performance to results using the scikit-learn library. 
+
+Neural networks are an essential part of machine learning, and are easy to implement using scikit-learn's libraries. However, it's critical to understand the structure and how these methods work from the inside, rather than just using libraries without a thorough understanding of them.  In this project, we build an FFNN model from scratch and investigate how architectural choices, such as layer and node counts, optimization methods, activation functions, and regularization terms, affect performance. Our model is flexible and configurable for multiple layers and nodes. We can vary between different activations (focusing on Sigmoid, ReLU, and Leaky ReLU (LReLU)) and optimizers (GD, Stochastic Gradient Descent (SGD), Adam, and RMSProp). The cost functions relevant to this project are MSE for regression and Softmax cross-entropy for classification. We also implement L1 and L2 regularization when needed. 
+
+Our overarching goal is to evaluate the advantages and disadvantages of using neural networks for both regression and classification, as well as to understand when neural networks offer meaningful advantages over simpler methods. An evaluation of the different gradient methods and learning rates used to train the network is also an essential part of our analysis, in addition to the importance of choosing layers and nodes. 
+
+    
+\section{Methods}\label{section:methods}
+
+\subsection{Method 1/X}
+
+
+
+\subsection{Implementation}
+
+
+\subsection{Use of AI tools}
+	
+I used ChatGPT to help me make a plan for how to structure the code for this project. Before that, I started with part (a), wrote the code, then went to part (b) and realized I could reuse some code from part (a). I ended up with messy code without clear structure, with repeated variables and functions more times than needed. I wanted to separate the code and make it reusable for all parts of this project, and also for other projects/exercises later. So I uploaded the project description to ChatGPT and asked for a plan on how to organize the code (not the actual code). ChatGPT gave me a plan where I can make one Python file at a time (data, models, plotting, etc.), so I don’t have to think only in terms of part a, b, c, which was a bit overwhelming. This helps me keep the code cleaner and easier to reuse.
+	
+\section{Results and Discussion}\label{section:results} 
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Figures/puppy.jpg}
+    \caption{My dog.}
+    \label{fig:puppy}
+\end{figure}
+
+
+\section{Conclusion}\label{section:conclusion} 
+
+
+\bibliography{biblio}
+
+\end{document}
