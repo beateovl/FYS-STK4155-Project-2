@@ -33,8 +33,8 @@ class NeuralNetwork:
         self.l1 = l1
         self.l2 = l2
 
-        last_act = self.activation_funcs[-1].__name__.lower()
-        self.classification = (last_act == "softmax")
+        last_act = self.activation_funcs[-1].__name__.lower() # Check if last activation is softmax
+        self.classification = (last_act == "softmax") # Flag for classification tasks
 
         if self.seed is not None:
             np.random.seed(self.seed)
@@ -53,9 +53,9 @@ class NeuralNetwork:
             fan_in, fan_out = in_size, out_size
             name = act.__name__.lower()
             if name in ("relu", "lrelu", "leakyrelu", "leaky_relu"):
-                scale = np.sqrt(2.0 / fan_in)          # He init
+                scale = np.sqrt(2.0 / fan_in)         
             else:
-                scale = np.sqrt(2.0 / (fan_in + fan_out))  # Xavier
+                scale = np.sqrt(2.0 / (fan_in + fan_out))  
             W = np.random.randn(fan_in, out_size) * scale
             b = np.zeros(out_size)  # or 0.01 for ReLU/LReLU to reduce dead units
             layers.append((W, b))
@@ -76,11 +76,12 @@ class NeuralNetwork:
             a = activation_func(z)
         return a
 
-# Compute cost with optional L1/L2 regularization
+# Compute cost with optional L1/L2 regularization 
     def cost(self, inputs, targets):
         pred = self.predict(inputs)
         base = self.cost_fun(pred, targets)
-        if self.l1 != 0.0 or self.l2 != 0.0:
+        # Add regularization terms if specified
+        if self.l1 != 0.0 or self.l2 != 0.0: 
             l1_term = sum(np.sum(np.abs(W)) for W, _ in self.layers)
             l2_term = sum(np.sum(W*W)       for W, _ in self.layers)
             base += self.l1 * l1_term + self.l2 * l2_term
@@ -262,7 +263,7 @@ class NeuralNetwork:
 
         return {"train_errors": train_errors, "val_errors": val_errors}
 
-    # Methods for Autograd compliance (Optional functionality) [17]
+    # Methods for Autograd compliance 
 
     def autograd_compliant_predict(self, layers, inputs):
         """
