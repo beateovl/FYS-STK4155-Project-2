@@ -24,15 +24,15 @@ Project2/
 ```
 
 Requirements: 
-# Python 3.12 project with HIPS Autograd + NumPy 1.x
-numpy==1.26.4
-scipy==1.11.4
-autograd==1.6.2
-scikit-learn==1.3.2
-pandas==2.2.3
-matplotlib==3.8.4s
-ipykernel>=6.29
-numpy<2
-scipy<1.12
-scikit-learn<1.4
+### Python 3.12 project with HIPS Autograd + NumPy 1.x <br>
+numpy==1.26.4 <br>
+scipy==1.11.4 <br>
+autograd==1.6.2 <br>
+scikit-learn==1.3.2 <br>
+pandas==2.2.3 <br>
+matplotlib==3.8.4s <br>
+ipykernel>=6.29 <br>
+numpy<2<br>
+scipy<1.12<br>
+scikit-learn<1.4<br>
 
