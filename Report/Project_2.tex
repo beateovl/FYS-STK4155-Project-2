@@ -1,4 +1,7 @@
-\documentclass[amssymb,twocolumn,aps]{revtex4}
+\documentclass[amssymb,twocolumn,aps,floatfix]{revtex4-2}
+
+
+
 
 % allows special characters (including æøå)
 \usepackage[utf8]{inputenc}
@@ -10,7 +13,8 @@
 \usepackage[table]{xcolor}
 \usepackage{xcolor}           % set colors
 \usepackage{hyperref}         % automagic cross-referencing 
-\usepackage{float}			  % force placement of tables and figures
+\usepackage{natbib}
+
 
 \begin{document}
 	
@@ -26,7 +30,7 @@
 
 The goal of this project was to understand how feed-forward neural networks (FFNNs) learn and to compare their performance with that of our earlier regression methods from Project 1 and libraries such as scikit-learn, using the nonlinear Runge function. We also tested multiclass classification using the MNIST datasets. For this, we developed our own neural network code, incorporating forward propagation, backpropagation, and various optimizers, activations, and regularization terms. For the regression method, we used one and two layers, with 50 and 100 hidden nodes.\\
 
-Our results show that neural networks outperform Ordinary least squares regression method on the Runge function, especially with two hidden layers and the Adam optimizer. Our results show a mean-squared error (MSE) for our model down to $\approx 3 x 10^{-5}$, compared to $\approx 6.9 x 10^{-2}$ for OLS. Adam and RMSProp trained faster and reached a lower error than plain gradient descent (GD). ReLU and LReLU activations helped prevent slow convergence, while Sigmoid worked but trained more slowly. L2 regularization improved stability and reduced overfitting for deeper networks. \\
+Our results show that neural networks outperform the Ordinary least squares regression method on the Runge function, especially with two hidden layers and the Adam optimizer. Our results show a mean-squared error (MSE) for our model down to $\approx 3 x 10^{-5}$, compared to $\approx 6.9 x 10^{-2}$ for OLS. Adam and RMSProp trained faster and reached a lower error than plain gradient descent (GD). ReLU and LReLU activations helped prevent slow convergence, while Sigmoid worked but trained more slowly. L2 regularization improved stability and reduced overfitting for deeper networks. \\
 
 For MNIST classification, our model reached a number $\approx 96$ \% accuracy, while Scikit-learn's MLP achieved $\approx 97$ \% accuracy, effectively competing on performance. Overall, we observe that neural network implementation offers significant benefits for nonlinear tasks, and the choice of optimizer and activation function has a substantial impact on training quality. 
 
@@ -36,7 +40,7 @@ For MNIST classification, our model reached a number $\approx 96$ \% accuracy, w
 \maketitle
 
 \section{Introduction}
-A central challenge in machine learning today is designing models that can both capture nonlinear relationships in data and generalize effectively to unseen samples. From Project 1, we saw that linear and polynomial regression models work well for smooth functions but are limited when the complexity increases due to numerical instability and overfitting if not properly regularized. Neural networks can address these limitations by learning layers of patterns, where the first layer learns the simplest features and subsequent layers stack on top, building complexity. We also meet challenges with neural networks, related to what we saw in Project 1, on how to optimize our algorithm with learning rate, optimizers, and, new to this method, activations. The methods and techniques we studied in Project 1 form the basis of our implementation of neural networks. We rely on the iterative gradient methods explored earlier and focus on hyperparameter selection to improve model performance.
+A central challenge in machine learning today is designing models that can both capture nonlinear relationships in data and generalize effectively to unseen samples. From Project 1, we observed that linear and polynomial regression models perform well for smooth functions but are limited when complexity increases due to numerical instability and overfitting if not properly regularized. Neural networks can address these limitations by learning layers of patterns, where the first layer learns the simplest features and subsequent layers build upon them, increasing complexity. We also meet challenges with neural networks, related to what we saw in Project 1, on how to optimize our algorithm with learning rate, optimizers, and, new to this method, activations. The methods and techniques we studied in Project 1 form the basis of our implementation of neural networks. We rely on the iterative gradient methods explored earlier and focus on hyperparameter selection to improve model performance.
 
 We look at both regression and classification problems and revisit the Runge function from Project 1: 
 
@@ -49,27 +53,346 @@ Using our best performance results from Project 1, we compare them to our result
 
 The classification implementation focuses on decision boundaries for different classes. Here, we evaluate the model using the softmax cross-entropy loss (our "MSE" for classification) and evaluate its performance through classification accuracy, which assesses how well our model can separate multiple classes. We also compare our model performance to results using the scikit-learn library. 
 
-Neural networks are an essential part of machine learning, and are easy to implement using scikit-learn's libraries. However, it's critical to understand the structure and how these methods work from the inside, rather than just using libraries without a thorough understanding of them.  In this project, we build an FFNN model from scratch and investigate how architectural choices, such as layer and node counts, optimization methods, activation functions, and regularization terms, affect performance. Our model is flexible and configurable for multiple layers and nodes. We can vary between different activations (focusing on Sigmoid, ReLU, and Leaky ReLU (LReLU)) and optimizers (GD, Stochastic Gradient Descent (SGD), Adam, and RMSProp). The cost functions relevant to this project are MSE for regression and Softmax cross-entropy for classification. We also implement L1 and L2 regularization when needed. 
+Neural networks are an essential part of machine learning, and are easy to implement using scikit-learn's libraries. However, it's critical to understand the structure and how these methods work from the inside, rather than just using libraries without a thorough understanding of them.  In this project, we build an FFNN model from scratch and investigate how architectural choices, such as layer and node counts, optimization methods, activation functions, and regularization terms, affect performance. Our model is flexible and configurable for multiple layers and nodes. We can vary between different activations (focusing on Sigmoid, ReLU, and Leaky ReLU (LReLU)) and optimizers (GD, Stochastic Gradient Descent (SGD), Adam, and RMSProp). For regression, the preferred cost function is the Mean-Squared Error (MSE). We also implement L1 and L2 regularization when needed. 
 
-Our overarching goal is to evaluate the advantages and disadvantages of using neural networks for both regression and classification, as well as to understand when neural networks offer meaningful advantages over simpler methods. An evaluation of the different gradient methods and learning rates used to train the network is also an essential part of our analysis, in addition to the importance of choosing layers and nodes. 
+Our overarching goal is to evaluate the advantages and disadvantages of using neural networks for both regression and classification, as well as to understand the circumstances under which neural networks offer advantages over simpler methods. An evaluation of the different gradient methods and learning rates used to train the network is also an essential part of our analysis, in addition to the importance of choosing the number of layers and nodes. 
 
-    
-\section{Methods}\label{section:methods}
+\section{Theory}
+\label{section:theory}
 
-\subsection{Method 1/X}
+\subsection{Regression background}
+
+Fundamentally, regression problems involve fitting a continuous function to predict the response of a continuous variable based on some independent variables. For neural networks, the objective of regression problems is to find some parameters (weights and biases) that minimize a cost function, allowing the model to make predictions on unseen data \cite{hj_week40}. For regression, the Mean Squared Error is the Mean-Squared Error (MSE). The output layer in an FFNN for regression typically uses a continuous function for continuous outputs. Commonly, this will be the identity function.\\ 
+
+The specific regression task in this project involves fitting the one-dimensional Runge function, which is identical to the one used in Project 1. We will compare the results obtained using our neural network code with those from the OLS regression results in Project 1. It's challenging to approximate such a highly variable function without encountering issues, especially with a polynomial-based approach, such as overfitting and oscillations. If the data is noisy, the model can fine-tune to the random noise in the training data. The resulting fitted curve can exhibit wild oscillations and give a poor representation of the true function. Increasing the polynomial order (higher complexity) can result in a fitted curve that passes through each training point, driving the training error toward zero while simultaneously causing large oscillations near the endpoints. This will lead to a significant error when evaluating on the test data \cite{wikipedia-runge}. 
+
+\subsection{Cost functions and their derivatives}
+\label{subsection:cost_theory}
+
+Cost functions are our method for verifying the accuracy of our model. It measures the total error on the dataset, and the weights and biases represent our trainable parameters. 
+
+\subsubsection{MSE with and without L1 and L2 norms}
+\label{subsubsection:mse_theory}
+
+Our cost function for regression in this project is the MSE: 
+
+\begin{equation}
+    C(\Theta) = \frac{1}{2} \sum_{n=1}^{N} \| y(x_n, \Theta) - t_n \|^2
+    \label{eq:mse}
+\end{equation}
+
+where 
+
+\begin{itemize}
+    \item $N:$ The number of training samples. 
+    \item $y(x_n, \Theta)$: The output vector (prediction) of the network for input $x_n$ and parameters $\Theta$. 
+    \item $t_n$: The true target vector. 
+    \item $\| \cdot|^2$: Denotes the squared Euclidean distance or sum of squared errors across all output nodes. 
+\end{itemize}
+
+Regularization terms, measured by norms of the weights \textbf{w}, are commonly added to the cost function to constrain the size of the weights and prevent overfitting \cite{compfys_ch14}. MSE with L1 and L2 norms, where the norms are added to function \ref{eq:mse}, $C_{D}(\Theta)$, in the below equation: 
+
+\begin{equation}
+    C_{\text{total}}(\Theta)
+= C_{D}(\Theta)
++ \lambda_{2} \, C_{W}^{\text{L2}}(\Theta)
++ \lambda_{1} \, C_{W}^{\text{L1}}(\Theta)
+\label{eq:mse_norms}
+\end{equation}
+
+The L2 norm (Ridge regression) is the sum of squares of the weight vector elements: 
+
+\begin{equation}
+    C_{W}^{\text{L2}}(\mathbf{\Theta}) = \frac{1}{2} \sum_{i} w_i^2 \quad
+\end{equation}
+
+or more generally \citep[p.144]{bishop2006pattern}: 
+
+\begin{equation}
+    \frac{1}{2} \mathbf{w}^T \mathbf{w}
+\end{equation}
+
+$\lambda_2$: The regularization coefficient for Ridge regression that controls the weight decay term. \\
+
+The L1 norm (Lasso regression) is the sum of absolute magnitudes of the weights.   \\
+
+Derivative of MSE with respect to output activation ($\delta_L$) \citep[p.~234]{bishop2006pattern}:
+
+\begin{equation}
+    \delta_k^{(L)} = y_k - t_k
+    \label{eq:mse_output_error}
+\end{equation}
+
+where 
+
+\begin{itemize}
+    \item $\delta_k^{(L)}$: The error of output unit k in the final layer L. 
+    \item $y_k - t_k$: The difference (error) between the network's prediction $(y_k)$ and the target value $(t_k)$. 
+\end{itemize}
 
 
+
+\subsubsection{Binary Cross entropy with and without L1 and L2 norms}
+\label{subsubsection:binary_cross_theory}
+
+Moving away from regression, binary cross-entropy is used for binary classification problems where the target can be classified to a value between 0 and 1, and the network output y is a probability, utilizing the cross-entropy activation function. The binary cross-entropy is the negative log likelihood \citep[p.~235]{bishop2006pattern} \cite{compfys_ch14}: 
+
+\begin{equation}
+    C(\mathbf{w}) = - \sum_{n=1}^{N} \left[ t_n \ln(y_n) + (1 - t_n)\,\ln(1 - y_n) \right]
+\label{eq:cross_entropy_error_func}
+\end{equation}
+
+where
+
+\begin{itemize}
+    \item $t_n$: True label for datapoint n (0 or 1)
+    \item $y_n$: Model's predicted probability that $t_n = 1$.
+    \item $1 - y_n$: Predicted probability that $t_n = 0$. 
+    \item $C(w)$: Total loss over all samples (depending on weights w). 
+\end{itemize}
+
+Here we model the probability of a correct classification. We use a negative log because probabilities multiply, and the log turns it into a sum. We are looking to find the maximum likelihood that something is correct, which is equivalent to minimizing the negative log-likelihood. LL1 and L2 norms in this case, as defined in section \ref{subsubsection:mse_theory}, are added to equation \ref{eq:cross_entropy_error_func} in the same way as in \ref{eq:mse_norms}.
+
+Derivative of the Binary cross-entropy cost function: 
+
+When the binary cross-entropy error is paired with the sigmoid activation function in the output layer, the derivative w.r.t. the activation becomes simplified \citep[p.206]{bishop2006pattern}: 
+
+\begin{equation}
+    \frac{\partial C}{\partial a_i^{(L)}} = a_i^{(L)} - t_i
+\end{equation}
+
+\subsubsection{Multiclass Cross-Entropy (Softmax Loss Function)}
+
+We use this cost function when we have several classes that are mutually exclusive. We then must use the Softmax activation function in the output layer. The multiclass cross-entropy error function is: 
+
+\begin{equation}
+    E(\mathbf{w}) = - \sum_{n=1}^{N} \sum_{k=1}^{K} t_{nk} \ln y_{nk}
+    \label{eq:multiclass_error}
+\end{equation}
+
+where 
+
+\begin{itemize}
+    \item $K$ is the number of classes.
+    \item $t_{nk}$ is the k-th component of the one-hot target vector for pattern $n$.
+    \item $y_{nk}$ is the network output (probability) for class $k$ for pattern $n$.
+\end{itemize}
+
+The derivative of the multiclass cross-entropy w.r.t. the output activation function $\delta_L$ is: 
+
+\begin{equation}
+    \delta_k^{(L)} = \frac{\partial a_k^{(L)}}{\partial E} = y_k - t_k
+    \label{eq:multiclass_der}
+\end{equation}
+
+Here, we have Softmax in the output layer. When used with the multiclass cross-entropy error function, the error signal becomes very simple, taking on the same form as the nonlinear MSE and Binary cross-entropy loss functions. 
+
+\subsection{Activation functions and their derivatives}
+
+Activation functions introduce non-linearity, which is essential to approximate complex, nonlinear functions. Without an activation function, a neural network would behave similarly to a linear equation. An activation function decides the output of a node and how strong that output should be. 
+
+\subsubsection{Sigmoid function}
+
+The sigmoid function constraints real-value inputs (z) into a range between 0 and 1, and is expressed by the input function $\sigma(z)$ \cite{hjorthjensen_week42_misc}: 
+
+\begin{equation}
+    \sigma(z) = \frac{1}{1 + e^{-z}}
+\end{equation}
+
+And it's derivative $\sigma'(z)$ expressed as \citep[p.~205]{bishop2006pattern}:
+
+\begin{equation}
+    \sigma'(z) = \sigma(z)\bigl(1 - \sigma(z)\bigr)
+\end{equation}
+
+This derivative tells us how much the output changes for every unit change in the input. When calculating the derivative, we only need the input function, which makes the calculations easier and faster. But if z is very big or very small, it means $\sigma(z) \approx 1$ or $\approx 0$. Then the gradient (for both near 0 and 1) will be tiny, and we will have what is called vanishing gradients, which slows down training \cite{hjorthjensen_week41_misc} \cite{hjorthjensen_week42_misc}. 
+
+\subsubsection{ReLU (Rectified Linear Unit) function}
+
+ReLU is a popular choice for the hidden layers and is expressed as \cite{hjorthjensen_week42_misc}: 
+
+\begin{equation}
+    \text{ReLU}(z) =
+\begin{cases}
+z, & \text{if } z > 0,\\[6pt]
+0, & \text{if } z \le 0
+\end{cases}
+\label{eq:relu}
+\end{equation}
+
+As well as its derivative: 
+
+\begin{equation}
+    \text{ReLU}'(z) =
+\begin{cases}
+1, & \text{if } z > 0,\\[6pt]
+0, & \text{if } z \le 0
+\end{cases}
+\end{equation}
+
+ReLU keeps only the positive values and turns negatives into zeros, meaning only positive inputs are passed through the function. For the derivative, this means that if the input is positive, the derivative is one, and the model is learning; however, for zeros, there is no gradient and therefore no learning. Since ReLU doesn't constrain the (positive) values like Sigmoid, we get strong gradients, which helps avoid the vanishing gradient problem, and we have a faster model. A problem with ReLU is known as the Dying ReLU: if a node's input is always negative, then its output and derivative are always 0, resulting in no learning at all \cite{hjorthjensen_week42_misc}. 
+
+\subsubsection{Leaky ReLU (LReLU)}
+
+Leaky ReLU is a modification of ReLU intended to solve the dying ReLUs problem by introducing a small, non-zero slope for negative inputs. Its expression is \cite{hjorthjensen_week42_misc} \cite{hjorthjensen_week43_misc}: 
+
+\begin{equation}
+    \text{LReLU}(z) =
+\begin{cases}
+z, & \text{if } z > 0,\\[6pt]
+\delta z, & \text{if } z \le 0
+\end{cases}
+\end{equation}
+
+With its derivative: 
+
+\begin{equation}
+    \text{LReLU}'(z) =
+\begin{cases}
+1, & \text{if } z > 0,\\[6pt]
+\delta, & \text{if } z \le 0
+\end{cases}
+\end{equation}
+
+The $\delta$ here is a small constant. This ensures the derivative is never exactly zero, keeping the nodes "alive". 
+
+\subsection{Neural Network Fundamentals}
+
+Neural networks are computational models composed of layers connected with nodes. They are considered neural-inspired models for supervised learning and function as powerful methods for linear and logistic regression \cite{compfys_ch13}. 
+
+\subsubsection{Feed-Forward Neural Networks (FFNN)}
+
+In an FFNN, information moves in one direction: forward, and through layers. Usually, each node in one layer is connected to all nodes in the subsequent layer \cite{compfys_ch13}. 
+
+\subsubsection{Architecture of layers: Input - Hidden - Output}
+
+Most networks consist of at least an input layer and an output layer. The input layer receives the raw data or features. If hidden layers are present, these layers pass the information forward until it eventually reaches the output layer, where the final prediction is produced \cite{compfys_ch13}. 
+
+\subsubsection{Weights and biases}
+The weights and biases are the trainable parameters ($\Theta$ or \textbf{w}) of the model. \\
+
+Each connection between nodes in the adjacent layers is represented by a weight (\textbf{W}) variable. Weights are typically matrix elements. Bias (b) is needed to shift the activation input in the case of zero values. A bias can be added that allows the neural network to represent a greater range of values. Biases are commonly vector elements. By adjusting these two parameters, we shift the activation function, or change its slope, or rescale it, which is the reason for the network's flexibility \cite{compfys_ch13} \cite{hjorthjensen_week41_misc}. 
+
+To calculate a node, we first calculate the weighted sum of inputs and then apply the activation function. The weighted sum of inputs is the weighted sum of the output of the preceding layer plus the corresponding bias for the current layer. In matrix-vector notation, this is: 
+
+\begin{equation}
+    z = XW + b
+\end{equation}
+
+Where X holds the inputs from the previous layer, W holds the weights, and b has the biases. 
+
+The output of the node is obtained by passing the weighted sum through a nonlinear activation function. This process involves a series of matrix-vector multiplications and vector additions as input to the activation functions \cite{compfys_ch13} \cite{hj_week40}. 
+
+\subsection{Optimization and backpropagation}
+
+The goal of training a neural network is to find some weights and biases that minimize the defined cost function. The most common and widely used method is Plain Gradient Descent (GD). This method iteratively adjusts the parameters in the direction where the gradient ($\nabla C$) of the cost function is large and negative. By moving in the direction of a negative gradient, the algorithm ensures movement towards a local minimum in the cost function \cite{compfys_ch14}. \\
+
+In this project, we utilize a backpropagation algorithm, which is an efficient method for calculating the gradient of the cost function with respect to every weight and bias in the network. Backpropagation uses an application of the chain rule from calculus. We start by evaluating the derivatives at the endpoint and work backwards. This is computationally efficient, as the output consists of either one or a few output variables \cite{hjorthjensen_week41_misc}. The procedure looks like this \cite[p.244]{bishop2006pattern} \cite{compfys_ch13}: 
+
+\begin{itemize}
+    \item Forward Pass: First, we get input, which is propagated forward through the network to establish all activations of the hidden and output layers. 
+    \item Output Error: At the output layer, the error term $\delta^L$ is calculated, which measures how quickly the cost function is changing relative to the output activation. For most cost functions (like MSE  with linear output and Cross-entropy with Softmax/Sigmoid), this error simplifies to the difference between the network output and the target. 
+    \item The error terms are then propagated backwards through the layers, and the error for each hidden layer is calculated from summing the weighted errors from the subsequent layer. 
+\end{itemize}
+
+More simply explained, backpropagation examines how incorrect the last prediction was, then sends the error backwards and updates the weights, allowing the next prediction to improve. \\
+
+GD provides the core mechanism for parameter updating, but several methods add variations on how the gradient or learning rate ($\eta$) is calculated to improve training stability and speed. 
+
+\subsubsection{Stochastic Gradient Descent (SGD)}
+
+SGD differs from plain GD in that it calculates an approximation of the gradient on a subset of the data, known as a minibatch. This helps the algorithm avoid getting stuck in a local minimum and speeds up calculations compared to using the whole dataset \cite{compfys_ch14} \cite{hjorthjensen_week42_misc}. 
+
+\subsubsection{Root Mean-Square Propagation (RMSProp)}
+
+This method improves GD/SGD by adjusting the learning rate individually for each weight based on how the gradients behave over time. RMSProp can help if the gradient topology is steep or curved, training is slow, or the learning rate needs to be tuned. RMSProp keeps a moving average of recent squared gradients and uses it to tune the learning rate by dividing it by the square root of these moving averages \cite{hjorthjensen_week42_misc} \cite{hjorthjensen_week43_misc}. This means that if gradients for a weight are usually large, we reduce the learning rate for that weight. If the gradients for a weight are usually small, we increase the learning rate for that weight. Meaning that RMSProp adapts the step size to improve learning and for faster training. 
+
+\subsubsection{Adaptive Gradient with Momentum or Adaptive Moment Estimation (Adam)}
+
+Adam combines elements from momentum (smooths gradients over time) and RMSProp (adapts learning rate for each weight). Adam keeps track of two things during training \cite{hjorthjensen_week41_misc}: 
+
+\begin{enumerate}
+    \item Average of recent gradients: Tells which direction to move in. 
+    \item Average of recent squared gradients: Tells how big the steps should be. 
+\end{enumerate}
+
+\section{Method}
+
+This project looks at two distinct datasets corresponding to two classic neural network problems: regression and classification. 
+
+\subsection{Data Setup}
+For the regression task, we used the one-dimensional Runge function \ref{eq:runge} with continuous output values. The initial dataset (size N) is split into training and testing sets to assess generalization performance. A 70\%/30\% split is used with \texttt{sklearn.model\_selection.train\_test\_split} with a fixed \texttt{test\_size=0.3} and \texttt{random\_state=42} to ensure reproducibility. The input features (x) are scaled using \texttt{sklearn.preprocessing.StandardScaler}. Here we fit the scaler only on training data (\texttt{X\_train}) and then transform both the scaled training data (\texttt{X\_train\_scaled}) and the test data (\texttt{X\_test\_scaled}). \\
+
+For the classification task, we used an MNIST dataset, which contains 784 pixel values per image. The output is integers between 0 and 9 that correspond to 10 classes. A 70\%/30\% split is used here as well, with stratification (classes are equally split) to ensure class balance. Raw pixel values (0-255) are scaled to the 0-1 range.  For multiclass classification the integer labels are converted to a one-hot encoded vector \cite{hjorthjensen_week42_misc}. \\
+
+\subsection{Models used}
+
+We test our custom model against established libraries. Our model is a custom-made version of the FFNN with backpropagation to minimize the cost function. For the regression tasks, the model utilizes a linear (identity) activation function in the output layer. 
+
+\begin{itemize}
+    \item OLS baseline: Results from our custom FFNN regression model are compared against the OLS regression results calculated in Project 1, serving as a non-neural network comparison.  
+    \item Regularization: FFNN includes regularization terms.
+    \item Rigde (L2): Regularization is tested by adding l2 hyperparameter to \texttt{nn.fit} method, known as weight decay. 
+    \item Lasso (L1): Regularization is tested by adding l1 in the same way as l2. 
+    \item Scikit-learn \texttt{MLPRegressor} and \texttt{MLPClassifier} for comparison: To validate the performance of our model, the \texttt{MLPRegressor/MLPClassifier} is used. We use identical network configurations to our model where possible. 
+    \item Autograd check: We verify that the derivatives derived for the backpropagation algorithm are correct using the Autograd library. More specifically, in our code, this checks that \texttt{manual\_grads} match the gradients computed using autograd (\texttt{autograd\_grads}) for a test batch. 
+\end{itemize}
 
 \subsection{Implementation}
+\label{sec:implementation}
 
+
+Our custom FFNN is constructed as a flexible object-oriented class that can handle different architectures, activation functions, and regularizations. 
+
+\begin{itemize}
+    \item Architecture choices: We explore different complexity levels of the network (varying layers and nodes), but mostly focusing on one hidden layer with 50 nodes and two hidden layers with 50 and 100 nodes. 
+    \begin{itemize}
+        \item Depth 0 (baseline): Consists only of an input and output layer (\texttt{0L-OUT1}). This is equivalent to linear regression (or logistic regression, depending on the output activation). 
+        \item Depth 1 (One hidden layer): tested with 50 nodes (\texttt{1L-50N}) and 100 nodes (\texttt{1L-100N}). 
+        \item Depth 2 (Two hidden layers): Tested with 50 and 100 nodes (\texttt{2L-50N/100N}).  
+        \item For classification, we use 128/128. 
+    \end{itemize}
+    \item Activations used for the hidden layers: 
+    \begin{itemize}
+        \item Sigmoid (logistic).
+        \item ReLU.
+        \item LReLU.
+        \item The output layer uses Identity for regression and Softmax for multiclass classification.
+    \end{itemize}
+    \item Initialization: Weights and biases are initialized to small random values. We use a \texttt{seed=42} to ensure reproducibility.
+    \item Optimizers: 
+    \begin{itemize}
+        \item GD: Uses the \texttt{Constant} scheduler (from \texttt{scheduler.py}) with \texttt{batches=1} for full batch processing. 
+        \item SGD: Uses the \texttt{Constant} scheduler with minibatching enabled (set \texttt{batches=N}, where \texttt{N > 1}). 
+        \item RMSProp: Uses the \texttt{RMS\_prop} scheduler with recommended momentum parameter $\rho = 0.9$. 
+        \item Adam: Uses the \texttt{Adam} scheduler with recommended parameters $\rho = 0.9$ and $\rho_2 = 0.999$. 
+    \end{itemize}
+\end{itemize}
+
+
+\subsection{Training}
+
+The network training is an iterative process handled by the \texttt{nn.fit} method. For regression tasks, we use MSE, implemented via \texttt{CostOLS}, and for classification we use the Cross-Entropy Loss (or Softmax loss) implemented via \texttt{CostCrossEntropy}. Regularization is implemented into the cost function by passing l1 or l2. The network is trained over a set number of epochs (1000 for regression sweeps and 10 for classification). The batch size is small (32) for SGD benefits. The weights are updated iteratively using the chosen scheduler. 
+
+\subsection{Hyperparameter search}
+
+We use a grid search to explore and find the optimal hyperparameters, visualizing the results as heatmaps. 
+
+\begin{itemize}
+    \item Learning rate sweeps ($\eta$): $\eta$ values are swept across a logarithmic range: \texttt{eta\_vals = np.logspace(-5, -1, 5)}. 
+    \item Regularization sweeps ($\lambda$): $\lambda$ is swept across ranges (here $10^{-5}$ to $2 \cdot 10^{-3}$) for both L1 and L2. If the $\lambda$ value is too large (over 0), the script will take too long to run. 
+    \item Architecture sweeps: We sweep across the different architectures in addition to the three main activation functions and the optimizers outlined in Section \ref{sec:implementation}. 
+\end{itemize}
+
+Eventually, we do a full sweep over all hyperparameters to find the best MSE score for regression and accuracy for classification. 
 
 \subsection{Use of AI tools}
 
 \subsubsection{ChatGPT}
 
-As in Project 1, I asked ChatGPT if it could help me structure the project and create a plan for organizing it (primarily structuring the code) by uploading the project description and requesting a plan. I didn't use it that much this time, as I found this project less overwhelming and more straightforward. I used it more as a checklist, and I might use it in the end to structure the code I've already created in the main notebook and create general Python files that can be reused later. 
+As in Project 1, I asked ChatGPT if it could help me structure the project and create a plan for organizing it (primarily structuring the code) by uploading the project description and requesting a plan. I didn't use it that much this time, as I found this project less overwhelming and more straightforward. I used it more as a checklist, and I might use it in the end to structure the code I've already created in the main notebook and create general Python files that can be reused later. I like to use ChatGPT as a project manager, where I ask if my results and analysis align with the project description, as a way to help keep track of progress and ensure that I've covered everything. 
 
-I also use ChatGPT to create all the tables and mathematical equations used here, allowing me to format them in neat LaTeX quickly. 
+I also use ChatGPT to create all the tables and mathematical equations used here, allowing me to format them in neat LaTeX quickly. I also use it to get codes for nice plots. 
 
 \subsubsection{Grammarly}
 
@@ -82,21 +405,18 @@ I have a Grammarly business account through my work that I use for language corr
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{Figures/nodes_layers_heatmap.png}
-    \caption{My dog.}
-    \label{fig:puppy}
+    \caption{}
+    \label{fig:nodes}
 \end{figure}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=1\linewidth]{Figures/bad.png}
-    \caption{Results from the first layer sweep.}
-    \label{fig:puppy}
-\end{figure}
+
 
 
 \section{Conclusion}\label{section:conclusion} 
 
 
+
+\bibliographystyle{apsrev4-2}
 \bibliography{biblio}
 
 \end{document}
