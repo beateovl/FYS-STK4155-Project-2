@@ -177,10 +177,27 @@ class NeuralNetwork:
             self.layers[k] = (W, b) # Store updated parameters
 
 # Reset weights to initial random state
-    def reset_weights(self):
-        if self.seed is not None:
-            np.random.seed(self.seed)
-        pass 
+    def reset_weights(self, mode="random", seed=None):
+    # Reset the network's weights either to the initial state or to a new random state.
+        if not hasattr(self, "_initial_layers"):
+            # self.layers is a list of tuples (W, b)
+            self._initial_layers = [(W.copy(), b.copy()) for (W, b) in self.layers]
+
+        if mode == "initial":
+            # Replace with copies of the snapshot (works with tuple storage)
+            self.layers = [(W0.copy(), b0.copy()) for (W0, b0) in self._initial_layers]
+
+        elif mode == "random":
+            rng = np.random.default_rng(self.seed if seed is None else seed)
+            new_layers = []
+            for (W, b) in self.layers:
+                W_new = rng.normal(0.0, 0.01, size=W.shape)
+                b_new = np.zeros_like(b)  # or rng.normal(0.0, 0.01, size=b.shape)
+                new_layers.append((W_new, b_new))
+            self.layers = new_layers
+        else:
+            raise ValueError("mode must be 'initial' or 'random'")
+
 
 # Train the network with batched inputs and optimizer
     def fit(
@@ -213,7 +230,7 @@ class NeuralNetwork:
         schedulers_b = [copy(scheduler) for _ in self.layers]
 
         train_errors = np.full(epochs, np.nan) # Store training errors per epoch
-        #val_errors   = np.full(epochs, np.nan) 
+        val_errors   = np.full(epochs, np.nan) 
 
 # Main training loop
         for epoch in range(epochs):
