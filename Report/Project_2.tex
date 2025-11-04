@@ -321,9 +321,9 @@ Adam combines elements from momentum (smooths gradients over time) and RMSProp (
 This project looks at two distinct datasets corresponding to two classic neural network problems: regression and classification. 
 
 \subsection{Data Setup}
-For the regression task, we used the one-dimensional Runge function \ref{eq:runge} with continuous output values. The initial dataset (size N) is split into training and testing sets to assess generalization performance. A 70\%/30\% split is used with \texttt{sklearn.model\_selection.train\_test\_split} with a fixed \texttt{test\_size=0.3} and \texttt{random\_state=42} to ensure reproducibility. The input features (x) are scaled using \texttt{sklearn.preprocessing.StandardScaler}. Here we fit the scaler only on training data (\texttt{X\_train}) and then transform both the scaled training data (\texttt{X\_train\_scaled}) and the test data (\texttt{X\_test\_scaled}). \\
+For the regression task, we used the one-dimensional Runge function \ref{eq:runge} with continuous output values and added stochastic noise (0.1). The initial dataset (size N) is split three ways into training, testing and validation sets to assess generalization performance. A 70\%/30\% split is used for the training and validation sets with \texttt{sklearn.model\_selection.train\_test\_split} with a fixed \texttt{test\_size=0.3} and \texttt{random\_state=42} to ensure reproducibility. The input features (x) are scaled using \texttt{sklearn.preprocessing.StandardScaler}. Here we fit the scaler only on training data (\texttt{X\_train}) and then transform both the scaled training data (\texttt{X\_train\_scaled}) and the test data (\texttt{X\_test\_scaled}). \\
 
-For the classification task, we used an MNIST dataset, which contains 784 pixel values per image. The output is integers between 0 and 9 that correspond to 10 classes. A 70\%/30\% split is used here as well, with stratification (classes are equally split) to ensure class balance. Raw pixel values (0-255) are scaled to the 0-1 range.  For multiclass classification the integer labels are converted to a one-hot encoded vector \cite{hjorthjensen_week42_misc}. \\
+For the classification task, we used an MNIST dataset, which contains 784 pixel values per image. The output is integers between 0 and 9 that correspond to 10 classes. A 70\%/30\% split is used here as well, with stratification (classes are equally split) to ensure a balance between classes. Raw pixel values (0-255) are scaled to the 0-1 range.  For multiclass classification the integer labels are converted to a one-hot encoded vector \cite{hjorthjensen_week42_misc}. \\
 
 \subsection{Models used}
 
@@ -398,7 +398,7 @@ I also use ChatGPT to create all the tables and mathematical equations used here
 
 I have a Grammarly business account through my work that I use for language correction (grammar, spelling, fixing sentences, punctuation, etc). 
 	
-\section{Results and Discussion}\label{section:results} 
+\section{Results}\label{section:results} 
 
 \subsection{Implementing a Feed-Forward Neural Network for Regression}
 
@@ -406,34 +406,85 @@ Best result project 1: OLS, degree 15, MSE: 0.098184
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/part_b_layer_one.png}
-    \caption{}
-    \label{fig:nodes}
+    \includegraphics[width=1\linewidth]{Figures/part_b_layer_one_100_epochs.png}
+    \caption{MSE scores for a one-layer (50 nodes) model, for different learning rates and optimizers. }
+    \label{fig:part_b_one}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/part_b_layer_two.png}
-    \caption{}
-    \label{fig:nodes}
+    \includegraphics[width=1\linewidth]{Figures/part_b_two_layers_100_epochs.png}
+    \caption{MSE scores for a two-layer (50 and 100 nodes) model, for different learning rates and optimizers. }
+    \label{fig:part_b_two}
 \end{figure}
 
+We performed a hyperparameter sweep on two different neural network architectures: 
+
+\begin{itemize}
+    \item One hidden layer (50 nodes)
+    \item Two hidden layers (50 and 100 nodes)
+\end{itemize}
+
+We used different optimizers (GD, SGD, RMSProp, and Adam) and learning rates. Figure \ref{fig:part_b_one} and \ref{fig:part_b_two} show the resulting MSE for all these combinations. The best performing model was the 1-layer network with the RMSProp at $\eta = 10^{-3}$, which reached an MSE of approximately \textbf{MSE} $\approx 0.0626$. GD combined with the two lowest learning rates ($10^{-4}$ and $10^{-5}$) resulted in the highest MSE (for both layer architectures). Other observations: 
+
+\begin{itemize}
+    \item RMSProp and Adam generally perform well across all learning rates. 
+    \item GD and SGD generally produced higher errors, especially for smaller learning rates. 
+\end{itemize}
+
+The best OLS test results from Project 1, polynomial degree 15, achieved \textbf{MSE} $\approx 0.098184$. The neural network then outperformed OLS on almost all of the combinations we tried. 
+ 
 \subsection{Effect of Activation Functions on Regression Performance}
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/part_b_layer_one.png}
+    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_layer_one.png}
     \caption{}
     \label{fig:nodes}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/part_b_layer_two.png}
+    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
     \caption{}
     \label{fig:nodes}
 \end{figure}
 
+\subsection{}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
+    \caption{}
+    \label{fig:nodes}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
+    \caption{}
+    \label{fig:nodes}
+\end{figure}
+
+\subsection{}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
+    \caption{}
+    \label{fig:nodes}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
+    \caption{}
+    \label{fig:nodes}
+\end{figure}
+
+\section{Discussion}
+
+From our initial tests, which involved sweeping over learning rates across different architectures and optimizers, we found a clear advantage of neural networks over polynomial regression for problems involving the Runge function. Even our one-layer network achieves lower MSE than OLS if using a well-suited learning rate. This indicates neural networks generalize better than high-degree polynomials. A change in MSE from $\approx 0.098$ to $\approx 0.063$ means a $\approx 36 \%$ improvement. We observe that the choice of optimizer matters, and that RMSProp and Adam consistently outperform GD and SGD. For a sweep with many hyperparameters and architectures resulting in a large matrix, it can be an option to drop GD and SGD to speed up computing time. We also see that the learning rate is a vital hyperparameter that can lead to underfitting if it is too small, or unstable training if it is too large. Adding a layer in this case has not improved the performance. 
 
 \section{Conclusion}\label{section:conclusion} 
 
