@@ -400,20 +400,30 @@ I have a Grammarly business account through my work that I use for language corr
 	
 \section{Results}\label{section:results} 
 
-\subsection{Implementing a Feed-Forward Neural Network for Regression}
+\subsection{Sweep over number of datapoints and epochs}
 
-Best result project 1: OLS, degree 15, MSE: 0.098184 
+We wanted to find the smallest number of datapoints (N) and epochs we could use (for computational efficiency), while still achieving reasonable MSE scores. An initial sweep over N [30, 60, 100, 200, 500, 1000, 2000] and epochs [100, 500, 1000] shows: 
+
+\begin{itemize}
+    \item Increasing N gives us a lower MSE. 
+    \item Performance plateaus around N=200.
+    \item Higher epochs only marginally improve performance beyond N=500. 
+\end{itemize}
+
+Given runtime constraints, N=200 and epochs=500 were chosen for the experiments, providing a good balance between training time and accuracy. 
+
+\subsection{Implementing a Feed-Forward Neural Network for Regression}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/part_b_layer_one_100_epochs.png}
+    \includegraphics[width=1\linewidth]{Figures/part_b_layer_one.png}
     \caption{MSE scores for a one-layer (50 nodes) model, for different learning rates and optimizers. }
     \label{fig:part_b_one}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/part_b_two_layers_100_epochs.png}
+    \includegraphics[width=1\linewidth]{Figures/part_b_layer_two.png}
     \caption{MSE scores for a two-layer (50 and 100 nodes) model, for different learning rates and optimizers. }
     \label{fig:part_b_two}
 \end{figure}
@@ -425,11 +435,13 @@ We performed a hyperparameter sweep on two different neural network architecture
     \item Two hidden layers (50 and 100 nodes)
 \end{itemize}
 
-We used different optimizers (GD, SGD, RMSProp, and Adam) and learning rates. Figure \ref{fig:part_b_one} and \ref{fig:part_b_two} show the resulting MSE for all these combinations. The best performing model was the 1-layer network with the RMSProp at $\eta = 10^{-3}$, which reached an MSE of approximately \textbf{MSE} $\approx 0.0626$. GD combined with the two lowest learning rates ($10^{-4}$ and $10^{-5}$) resulted in the highest MSE (for both layer architectures). Other observations: 
+We used different optimizers (GD, SGD, RMSProp, and Adam) and learning rates. Figure \ref{fig:part_b_one} and \ref{fig:part_b_two} show the resulting MSE for all these combinations. The best performing model was the 1-layer network with the RMSProp at $\eta = 10^{-3}$, which reached an MSE of approximately \textbf{MSE} $\approx 0.0127$. Adam at $\eta = 10^{-3}$ had the lowest error for the 2-layer network ($\approx 0.0114$). Other observations: 
 
 \begin{itemize}
+    \item For most learning rates, all optimizers converge to roughly the same MSE ($approx 0.094$). 
+    \item The largest performance differences occur at larger learning rates.
     \item RMSProp and Adam generally perform well across all learning rates. 
-    \item GD and SGD generally produced higher errors, especially for smaller learning rates. 
+    \item GD and SGD generally produced higher errors, especially for the smallest learning rates. 
 \end{itemize}
 
 The best OLS test results from Project 1, polynomial degree 15, achieved \textbf{MSE} $\approx 0.098184$. The neural network then outperformed OLS on almost all of the combinations we tried. 
@@ -484,11 +496,11 @@ The best OLS test results from Project 1, polynomial degree 15, achieved \textbf
 
 \section{Discussion}
 
-From our initial tests, which involved sweeping over learning rates across different architectures and optimizers, we found a clear advantage of neural networks over polynomial regression for problems involving the Runge function. Even our one-layer network achieves lower MSE than OLS if using a well-suited learning rate. This indicates neural networks generalize better than high-degree polynomials. A change in MSE from $\approx 0.098$ to $\approx 0.063$ means a $\approx 36 \%$ improvement. We observe that the choice of optimizer matters, and that RMSProp and Adam consistently outperform GD and SGD. For a sweep with many hyperparameters and architectures resulting in a large matrix, it can be an option to drop GD and SGD to speed up computing time. We also see that the learning rate is a vital hyperparameter that can lead to underfitting if it is too small, or unstable training if it is too large. Adding a layer in this case has not improved the performance. 
+From our initial tests, which involved sweeping over learning rates across different architectures and optimizers, we found a clear advantage of neural networks over polynomial regression for problems involving the Runge function. Even our one-layer network achieves lower MSE than OLS if using a well-suited learning rate. This indicates neural networks generalize better than high-degree polynomials. We observe that the choice of optimizer matters, and that RMSProp and Adam consistently outperform GD and SGD. For a sweep with many hyperparameters and architectures resulting in a large matrix, it can be an option to drop GD and SGD to speed up computing time. We also see that the learning rate is a vital hyperparameter that can lead to underfitting if it is too small or unstable training if it is too large. Adding a layer in this case only yielded a slight performance improvement, but at the expense of additional computing. Sigmoid activation trains slowly and requires careful learning rate tuning, like we see from Figure \ref{fig:part_b_one} and \ref{fig:part_b_two} when using GD and SGD, especially. 
 
 \section{Conclusion}\label{section:conclusion} 
 
-
+From our initial tests, our best result (\textbf{MSE} $\approx 0.011$) was achieved with the configuration using a 2-layer (50 and 100 nodes) Adam ($\eta=10^{-2}$). However, using less complexity yielded almost the same performance. A higher epoch and number of datapoints contribute to a lower MSE, but increase runtime. 
 
 \bibliographystyle{apsrev4-2}
 \bibliography{biblio}
