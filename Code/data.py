@@ -10,7 +10,8 @@ def runge_function(x):
 def make_data(seed_fixed=42, N=200, noise_std=0.1, test_N=2000):
     """
     Generates training, validation, and fixed test datasets based on the Runge function with added Gaussian noise.
-    Scales the features using StandardScaler.
+    Scales the features using StandardScaler. 2000 test points are generated in the range [-1, 1], 
+    for stable evaluation (no fluctuating test set performance).
     """
     # Fixed test set (for final evaluation)
     rng_fixed = np.random.default_rng(seed_fixed)

@@ -105,7 +105,8 @@ class NeuralNetwork:
             zs.append(z)
         
         return layer_inputs, zs, a # Returns saved data and final prediction
-
+    
+        
     #backpropagation
     def compute_gradient(self, inputs, targets):
         # Forward pass to get saved activations and weighted sums
@@ -212,6 +213,7 @@ class NeuralNetwork:
         l1=None,
         l2=None,
     ):
+
         # Set regularization parameters
         if l2 is None and lam is not None: 
             l2 = float(lam) 
@@ -294,3 +296,4 @@ class NeuralNetwork:
         layers_grad = gradient_func(self.layers, inputs, targets)
         return layers_grad
         
+

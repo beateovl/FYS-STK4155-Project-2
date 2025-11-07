@@ -17,9 +17,11 @@ else:
 import autograd.numpy as np
 from Code.ffnn2 import NeuralNetwork as FFNN 
 from Code.activations import sigmoid, identity, derivate 
-from Code.cost import CostOLS, dCostOLS
+from Code.cost import CostOLS, dCostOLS, CostCrossEntropy, dCostCrossEntropy, softmax
 
 
+
+#Handles the cost functions as well
 def run_comparison(optimizer, X_train, t_train, network_input_size, layer_output_sizes, **kwargs):
     # Determine activation functions based on layers count
     n_hidden_layers = len(layer_output_sizes) - 1
@@ -68,3 +70,43 @@ def run_comparison(optimizer, X_train, t_train, network_input_size, layer_output
         l2=l2
     )
     return scores, nn
+
+
+
+"""Classification comparison helper functions."""
+
+def run_classification_comparison(optimizer, X_train, Y_train, X_test, y_test,
+                                   network_input_size, layer_output_sizes, hidden_activation_func, **kwargs):
+    n_hidden = len(layer_output_sizes) - 1
+    activation_funcs = [hidden_activation_func] * n_hidden + [softmax]  # Hidden + output softmax
+    activation_ders = [derivate(f) for f in activation_funcs]  # Derivatives of activations
+
+    nn = FFNN(network_input_size=network_input_size,
+              layer_output_sizes=tuple(layer_output_sizes),
+              activation_funcs=activation_funcs,
+              activation_ders=activation_ders,
+              cost_fun=CostCrossEntropy,
+              cost_der=dCostCrossEntropy,
+              seed=42)
+    nn.reset_weights()
+
+    epochs = kwargs.pop('epochs', 10)
+    batches = kwargs.pop('batches', 64)
+    lam = kwargs.pop('lam', 0.0)
+    l1 = kwargs.pop('l1', 0.0)
+    l2 = kwargs.pop('l2', 0.0)
+
+    opt_args = {k: v for k, v in kwargs.items() if k in ("eta", "rho", "rho2", "eps", "beta1", "beta2")}
+    scheduler = optimizer(**opt_args)
+
+    # Training the network
+    history = nn.fit(X_train, Y_train, scheduler=scheduler, epochs=epochs, batches=batches,
+                     lam=lam, l1=l1, l2=l2)
+
+    # Testing
+    probs_test = nn.predict(X_test)
+    y_hat = np.argmax(probs_test, axis=1)
+    acc = (y_hat == y_test).mean()  # Accuracy
+    ce_test = CostCrossEntropy(probs_test, np.eye(10)[y_test])  # Cross entropy cost on test data
+
+    return {"train_errors": history["train_errors"], "acc": acc, "ce": ce_test}, nn
