@@ -16,6 +16,19 @@
 \usepackage{natbib}
 \usepackage{float}  
 
+\usepackage{booktabs}
+\usepackage{siunitx}
+\sisetup{
+  table-number-alignment = center,
+  table-figures-integer = 1,
+  table-figures-decimal = 6,
+  table-figures-exponent = 1,
+  detect-weight = true,
+  detect-inline-weight = math,
+}
+
+
+
 \begin{document}
 	
 \title{Developing and Evaluating Feed-Forward Neural Networks for Regression and Classification. \\
@@ -323,14 +336,14 @@ This project looks at two distinct datasets corresponding to two classic neural 
 \subsection{Data Setup}
 For the regression task, we used the one-dimensional Runge function \ref{eq:runge} with continuous output values and added stochastic noise (0.1). The initial dataset (size N) is split three ways into training, testing and validation sets to assess generalization performance. A 70\%/30\% split is used for the training and validation sets with \texttt{sklearn.model\_selection.train\_test\_split} with a fixed \texttt{test\_size=0.3} and \texttt{random\_state=42} to ensure reproducibility. The input features (x) are scaled using \texttt{sklearn.preprocessing.StandardScaler}. Here we fit the scaler only on training data (\texttt{X\_train}) and then transform both the scaled training data (\texttt{X\_train\_scaled}) and the test data (\texttt{X\_test\_scaled}). \\
 
-For the classification task, we used an MNIST dataset, which contains 784 pixel values per image. The output is integers between 0 and 9 that correspond to 10 classes. A 70\%/30\% split is used here as well, with stratification (classes are equally split) to ensure a balance between classes. Raw pixel values (0-255) are scaled to the 0-1 range.  For multiclass classification the integer labels are converted to a one-hot encoded vector \cite{hjorthjensen_week42_misc}. \\
+For the classification task, we used an MNIST dataset, which contains 784 pixel values per image. The output is integers between 0 and 9 that correspond to 10 classes. A 70\%/30\% split is used here as well, with stratification (classes are equally split) to ensure a balance between classes. Raw pixel values (0-255) are scaled to the 0-1 range.  For multiclass classification, the integer labels are converted to a one-hot encoded vector \cite{hjorthjensen_week42_misc}. \\
 
 \subsection{Models used}
 
-We test our custom model against established libraries. Our model is a custom-made version of the FFNN with backpropagation to minimize the cost function. For the regression tasks, the model utilizes a linear (identity) activation function in the output layer. 
+We test our custom model against established libraries. Our model is a custom-made version of the FFNN with backpropagation to minimize the cost function. For the regression tasks, the model utilizes a linear (identity) activation function in the output layer, and softmax for the classification part. 
 
 \begin{itemize}
-    \item OLS baseline: Results from our custom FFNN regression model are compared against the OLS regression results calculated in Project 1, serving as a non-neural network comparison.  
+    \item OLS, Ridge, and Lasso baseline: Results from our custom FFNN regression model are compared against the OLS, Ridge, and Lasso regression results calculated in Project 1, serving as a non-neural network comparison.  
     \item Regularization: FFNN includes regularization terms.
     \item Rigde (L2): Regularization is tested by adding l2 hyperparameter to \texttt{nn.fit} method, known as weight decay. 
     \item Lasso (L1): Regularization is tested by adding l1 in the same way as l2. 
@@ -345,13 +358,7 @@ We test our custom model against established libraries. Our model is a custom-ma
 Our custom FFNN is constructed as a flexible object-oriented class that can handle different architectures, activation functions, and regularizations. 
 
 \begin{itemize}
-    \item Architecture choices: We explore different complexity levels of the network (varying layers and nodes), but mostly focusing on one hidden layer with 50 nodes and two hidden layers with 50 and 100 nodes. 
-    \begin{itemize}
-        \item Depth 0 (baseline): Consists only of an input and output layer (\texttt{0L-OUT1}). This is equivalent to linear regression (or logistic regression, depending on the output activation). 
-        \item Depth 1 (One hidden layer): tested with 50 nodes (\texttt{1L-50N}) and 100 nodes (\texttt{1L-100N}). 
-        \item Depth 2 (Two hidden layers): Tested with 50 and 100 nodes (\texttt{2L-50N/100N}).  
-        \item For classification, we use 128/128. 
-    \end{itemize}
+    \item Architecture choices: We explore different complexity levels of the network (varying layers and nodes), but mostly focusing on one, two, and three hidden layers with (25, 50, 100, and 200 at most) nodes for regression, and as many layers for classification, but with (32, 64, 128, 256 at most) nodes. This is because classification can be computationally intensive, and these values are powers of two, which can facilitate faster computation and are more memory efficient. 
     \item Activations used for the hidden layers: 
     \begin{itemize}
         \item Sigmoid (logistic).
@@ -379,8 +386,8 @@ The network training is an iterative process handled by the \texttt{nn.fit} meth
 We use a grid search to explore and find the optimal hyperparameters, visualizing the results as heatmaps. 
 
 \begin{itemize}
-    \item Learning rate sweeps ($\eta$): $\eta$ values are swept across a logarithmic range: \texttt{eta\_vals = np.logspace(-5, -1, 5)}. 
-    \item Regularization sweeps ($\lambda$): $\lambda$ is swept across ranges (here $10^{-5}$ to $2 \cdot 10^{-3}$) for both L1 and L2. If the $\lambda$ value is too large (over 0), the script will take too long to run. 
+    \item Learning rate sweeps ($\eta$): $\eta$ values are swept across a logarithmic range: \texttt{eta\_vals = np.logspace(-5, -1, 5)}, narrowing them down to \texttt{eta\_vals = np.logspace(-4, -1, 4)} after seeing non-beneficial effects of the smallest learning rate, and to save run time.}. 
+    \item Regularization sweeps ($\lambda$): $\lambda$ is swept across ranges (here $[10^{-4}, 10^{-3}, 10^{-2}]$ for both L1 and L2. 
     \item Architecture sweeps: We sweep across the different architectures in addition to the three main activation functions and the optimizers outlined in Section \ref{sec:implementation}. 
 \end{itemize}
 
@@ -413,6 +420,7 @@ We wanted to find the smallest number of datapoints (N) and epochs we could use 
 Given runtime constraints, N=200 and epochs=500 were chosen for the experiments, providing a good balance between training time and accuracy. 
 
 \subsection{Implementing a Feed-Forward Neural Network for Regression}
+\label{subsec:partb}
 
 \begin{figure}[H]
     \centering
@@ -446,61 +454,194 @@ We used different optimizers (GD, SGD, RMSProp, and Adam) and learning rates. Fi
 
 The best OLS test results from Project 1, polynomial degree 15, achieved \textbf{MSE} $\approx 0.098184$. The neural network then outperformed OLS on almost all of the combinations we tried. 
  
-\subsection{Effect of Activation Functions on Regression Performance}
+\subsection{Comparison to Scikit-learn libraries}
 
-\begin{figure}[h!]
+To validate the performance of our custom network, we compared it against scikit-learn's MLPRegressor under similar settings. The scikit-learn model produced test MSE scores in the range og 0.0939-0.1022, where the lowest score could be found in both layers, with both optimizers, and mid-range learning rates. The best score (0.0939) is very close to our own results (most of our model's scores were around this value). Again, we see some performance drop with the largest and smallest learning rates, with Adam showing a little more sensitivity to large steps than SGD. These results also confirm our observations from our own model, that the neural network outperforms OLS in capturing nonlinear structure. 
+
+\begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_layer_one.png}
-    \caption{}
+    \caption{MSE heatmaps for neural networks trained with two different optimizers and learning rates. For the one-hidden-layer, we observe higher MSE for both the smallest and largest learning rates.}
     \label{fig:nodes}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
-    \caption{}
+    \caption{MSE heatmaps for neural networks trained with two different optimizers and learning rates. Both higher and smaller learning rates produce high MSE.  }
     \label{fig:nodes}
 \end{figure}
 
-\subsection{}
 
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
-    \caption{}
-    \label{fig:nodes}
-\end{figure}
+\subsection{Hyperparameter Tuning: Activation function and Architecture for Regression}
+\label{subsec:part_d_results}
 
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
-    \caption{}
-    \label{fig:nodes}
-\end{figure}
+We do a sweep over the following parameters:
 
-\subsection{}
+\begin{itemize}
+    \item Architectures: 2–3 hidden layers with 50–200 nodes per layer. 
+    \item Activations: ReLU (R), Leaky ReLU (LR), and Sigmoid. 
+    \item Optimizers: Adam and RMSProp. 
+    \item Learning rates: $\eta \in [10^{-4}, 10^{-3}, 10^{-2}, 10^{-1}]$. 
+\end{itemize}
 
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
-    \caption{}
-    \label{fig:nodes}
-\end{figure}
+\begin{table}[h!]
+\caption{Top-10 best configurations after retraining (test MSE, no regularization).}
+\label{tab:best-no-reg}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.95}
+\small
+\begin{ruledtabular}
+\begin{tabular}{l c c c r}
+Architecture & Activation & Optimizer & $\eta$ & MSE \\
+\colrule
+3HL (50,100,200)      & LReL & Adam & $1.0\times10^{-3}$ & 0.010530 \\
+2HL (50,100)          & LReL & Adam & $1.0\times10^{-3}$ & 0.010664 \\
+2HL (50,100)          & ReLU & Adam & $1.0\times10^{-3}$ & 0.010696 \\
+2HL (50,100)          & LReL & RMSp & $1.0\times10^{-3}$ & 0.011191 \\
+2HL (50,100)          & LReL & SGD  & $1.0\times10^{-1}$ & 0.011193 \\
+1HL (50)              & Sigm & Adam & $1.0\times10^{-1}$ & 0.011207 \\
+2HL (50,100)          & ReLU & RMSp & $1.0\times10^{-3}$ & 0.011336 \\
+2HL (50,100)          & ReLU & SGD  & $1.0\times10^{-1}$ & 0.011590 \\
+2HL (50,100)          & LReL & RMSp & $1.0\times10^{-2}$ & 0.013847 \\
+1HL (50)              & Sigm & RMSp & $1.0\times10^{-2}$ & 0.094016 \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
 
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1\linewidth]{Figures/part_c_mlpregressor_two_layers.png}
-    \caption{}
-    \label{fig:nodes}
-\end{figure}
+
+
+Table \ref{tab:best-no-reg} shows the ten best test MSE values for different combinations of architectures, activation functions, and optimizers. The learning rate $\eta$ was varied logarithmically between $10^{-4}$ and $10^{-1}$.
+
+The optimal configuration after retraining consisted of a three-hidden-layer network (50, 100, 200 nodes) with Leaky ReLU (LReLU) activation and the Adam optimizer, yielding a test MSE of 0.010530.
+
+Overall, Adam and RMSprop yielded the most competitive results, particularly in combination with ReLU and LReLU activations. Although it achieved the best test MSE score, increasing the network depth did not substantially improve the test error, as a two-layer network (50,100 nodes) yielded almost identical results.  
+
+
+\subsection{Regularization Study: L1 vs L2 in Neural Network Regression}
+
+In the final sweep of the regression part of this task, we perform a sweep over the same parameters as in Section \ref{subsec:part_d_results}, but add regularization: 
+
+\begin{itemize}
+    \item Regularization strengths: $L_1, L_2 \in [10^{-4}, 10^{-3}, 10^{-2}]$. 
+\end{itemize}
+
+
+\begin{table}[h!]
+\caption{Top-10 after L1 retraining (test MSE only).}
+\label{tab:retrain-l1}
+\scriptsize
+\setlength{\tabcolsep}{2pt}\renewcommand{\arraystretch}{0.9}
+\centering
+\begin{tabular}{l l l S[table-format=1.1e-2] S[table-format=1.1e-3] S}
+\toprule
+Arch. & Act. & Opt. & {$\eta$} & {$\lambda$} & {Test MSE} \\
+\midrule
+2HL–50/100      & LR   & RMSP  & 1.0e-02 & 1.0e-04 & 0.010515 \\
+3HL–50/100/200  & LR   & Adam  & 1.0e-02 & 1.0e-04 & 0.010884 \\
+3HL–50/100/200  & R    & Adam  & 1.0e-02 & 1.0e-04 & 0.010895 \\
+2HL–50/100      & R    & RMSP  & 1.0e-02 & 0.0e+00 & 0.010929 \\
+3HL–50/100/200  & LR   & Adam  & 1.0e-02 & 0.0e+00 & 0.010961 \\
+2HL–50/100      & LR   & Adam  & 1.0e-02 & 0.0e+00 & 0.011035 \\
+2HL–50/100      & R    & RMSP  & 1.0e-02 & 1.0e-04 & 0.011118 \\
+2HL–50/100      & R    & Adam  & 1.0e-02 & 0.0e+00 & 0.011208 \\
+2HL–50/100      & LR   & RMSP  & 1.0e-02 & 0.0e+00 & 0.011423 \\
+2HL–100/200     & R    & RMSP  & 1.0e-02 & 1.0e-04 & 0.012433 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[h!]
+\caption{Top-10 after L2 retraining (test MSE only).}
+\label{tab:retrain-l2}
+\scriptsize
+\setlength{\tabcolsep}{2pt}\renewcommand{\arraystretch}{0.9}
+\centering
+\begin{tabular}{l l l S[table-format=1.1e-2] S[table-format=1.1e-3] S}
+\toprule
+Arch. & Act. & Opt. & {$\eta$} & {$\lambda$} & {Test MSE} \\
+\midrule
+3HL–50/100/200  & R      & RMSP  & 1.0e-03 & 1.0e-04 & 0.010386 \\
+3HL–50/100/200  & LR     & RMSP  & 1.0e-03 & 0.0e+00 & 0.010691 \\
+3HL–50/100/200  & LR     & Adam  & 1.0e-02 & 1.0e-03 & 0.010780 \\
+3HL–50/100/200  & R      & Adam  & 1.0e-02 & 1.0e-03 & 0.010935 \\
+3HL–50/100/200  & R      & Adam  & 1.0e-03 & 0.0e+00 & 0.011275 \\
+3HL–50/100/200  & R      & Adam  & 1.0e-03 & 1.0e-04 & 0.011286 \\
+3HL–50/100/200  & LR     & Adam  & 1.0e-03 & 1.0e-04 & 0.011332 \\
+3HL–50/100/200  & LR     & Adam  & 1.0e-03 & 0.0e+00 & 0.011427 \\
+2HL–50/100      & LR     & RMSP  & 1.0e-02 & 0.0e+00 & 0.011423 \\
+2HL–50/100      & LR     & Adam  & 1.0e-01 & 1.0e-04 & 0.014589 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[h!]
+\small
+\centering
+\caption{Best models on Runge (test MSE).}
+\toprule
+\textbf{Method} & \textbf{Best configuration} & {\textbf{MSE}} \\
+\midrule
+Ridge  & degree 14 & 0.098207 \\
+Lasso  & degree 10 & 0.102341 \\
+\midrule
+NN + $L_2$ & {3HL (50,100,200), ReLU, RMSprop, $\eta=10^{-3}$,\\ $L_2=10^{-4}$} & 0.010386 \\
+NN + $L_1$ & {2HL (50,100), LReLU, RMSprop, $\eta=10^{-2}$,\\ $L_1=10^{-4}$} & 0.010511 \\
+\bottomrule
+\end{table}
+
+The best configurations after retraining the top-performing networks are summarized in Tables \ref{tab:retrain-l1} and \ref{tab:retrain-l2}, along with the results from polynomial regression. Our model clearly outperforms polynomial regressions in terms of the best test MSE scores. For L1 regularization, the lowest test MSE achieved was 0.01051 for a 2HL–50/100 architecture using Leaky ReLU and RMSprop at $\eta=10^{-2}$ and $L_1=10^{-4}$.
+For L2 regularization, the best model reached an MSE of 0.01039 for a 3HL–50/100/200 network using ReLU and RMSprop with $\eta=10^{-3}$ and $\lambda=10^{-4}$. Both regularized models slightly outperform or match the best unregularized configuration (MSE ≈ 0.01039, as shown in Table \ref{tab:best-no-reg}). 
+
+
+
+
+
+\subsection{Classification with Neural Networks: MNIST Benchmark Study}
+
+
+\begin{table}[h!]
+\centering
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{0.9}
+\small
+\begin{tabular}{l l l l c c c c}
+\toprule
+Phase & Arch. & Opt. & Act. & $\eta$ & $L_1$ & $L_2$ & Acc. \\
+\midrule
+Stage test & 2HL & Adam & LReLU & $3.0\!\times\!10^{-3}$ & $1.0\!\times\!10^{-3}$ & 0 & 0.9808 \\
+Retrain    & 2HL & Adam & LReLU & $3.0\!\times\!10^{-3}$ & $1.0\!\times\!10^{-3}$ & 0 & 0.9814 \\
+\midrule
+Baseline   & Log. Reg.  & --    & --    & -- & -- & -- & 0.9195 \\
+\bottomrule
+\end{tabular}
+\caption{Best configuration from the testing done to find the best hyperparameters and corresponding final retraining from scratch using identical hyperparameters. Both layers have (128,256) nodes. Baseline is scikit-learn's library results.}
+\label{tab:best_mnist_config}
+\end{table}
+
+
 
 \section{Discussion}
 
-From our initial tests, which involved sweeping over learning rates across different architectures and optimizers, we found a clear advantage of neural networks over polynomial regression for problems involving the Runge function. Even our one-layer network achieves lower MSE than OLS if using a well-suited learning rate. This indicates neural networks generalize better than high-degree polynomials. We observe that the choice of optimizer matters, and that RMSProp and Adam consistently outperform GD and SGD. For a sweep with many hyperparameters and architectures resulting in a large matrix, it can be an option to drop GD and SGD to speed up computing time. We also see that the learning rate is a vital hyperparameter that can lead to underfitting if it is too small or unstable training if it is too large. Adding a layer in this case only yielded a slight performance improvement, but at the expense of additional computing. Sigmoid activation trains slowly and requires careful learning rate tuning, like we see from Figure \ref{fig:part_b_one} and \ref{fig:part_b_two} when using GD and SGD, especially. 
+From our initial tests, which involved sweeping over learning rates across different architectures and optimizers, we found a clear advantage of neural networks over polynomial regression for problems involving the Runge function. Even our one-layer network achieves lower MSE than OLS if using a well-suited learning rate. This indicates neural networks generalize better than high-degree polynomials. We observe that the choice of optimizer matters, and that RMSProp and Adam consistently outperform GD and SGD. For a sweep with many hyperparameters and architectures resulting in a large matrix, it can be an option to drop GD and SGD to speed up computing time. We also see that the learning rate is a vital hyperparameter that can lead to underfitting if it is too small or unstable training if it is too large. Adding a layer in this case only yielded a slight performance improvement, but at the expense of additional computing. Sigmoid activation trains slowly and requires careful learning rate tuning, like we see from Figure \ref{fig:part_b_one} and \ref{fig:part_b_two} when using GD and SGD, especially. Comparing our results with those from the scikit-learn libraries, we observe very similar performance results, which provides strong evidence that our backward and forward passes are correct. We also verify that our gradients are accurate by comparing them to gradients computed by automatic differentiation (Autograd). Another interesting observation is that we see the same hyperparameter pattern in the scikit-learn model as in our own model; poor performance for very small or very large learning rates, best performance around $\10^{-3}$. This also suggests that our model works as intended. 
+
+When testing optimizers, activation functions, and architectures against a fixed learning rate, the results indicate that deep architectures (two or three hidden layers) can slightly outperform shallower ones when paired with adaptive optimizers, although the improvement is marginal. The Leaky ReLU activation performed best overall, followed closely by ReLU, while Sigmoid activations tended to converge more slowly and to slightly higher MSEs. Adam remained the most consistent optimizer across configurations, and RMSprop produced comparable results. In contrast, SGD required a higher learning rate ($\eta = 10^{-1}$) to achieve similar test errors, indicating slower convergence dynamics. Overall, the results suggest that adaptive optimizers (Adam, RMSprop) effectively stabilize training and improve performance, while the addition of extra layers yields smaller gains. 
+
+Adding regularization didn't drastically reduce MSE, but results show a more consistent generalization across architectures and optimizers (less spread in test MSE). Adam and RMSProp dominate in the same way as in the tests without regularization, and ReLU and LReLU are the best-performing activations. Interestingly, while the shallow network performed the best without regularization, our top results for regularization shifted towards deeper networks. This indicates that without regularization, the deeper models might have underperformed due to overfitting. Adding L1/L2 terms dealt with the issue of overfitting. 
 
 \section{Conclusion}\label{section:conclusion} 
 
-From our initial tests, our best result (\textbf{MSE} $\approx 0.011$) was achieved with the configuration using a 2-layer (50 and 100 nodes) Adam ($\eta=10^{-2}$). However, using less complexity yielded almost the same performance. A higher epoch and number of datapoints contribute to a lower MSE, but increase runtime. 
+From our initial tests, our best result (\textbf{MSE} $\approx 0.011$) was achieved with the configuration using a 2-layer (50 and 100 nodes) Adam ($\eta=10^{-2}$). However, using less complexity yielded almost the same performance. A higher epoch and number of datapoints contribute to a lower MSE, but increase runtime. The comparison with scikit-learn serves as strong validation that our model is correctly implemented, and in some cases even works better. 
+
+Finding the optimal combination of architecture, optimizer, and activation function revealed that a wider and shallower network can be sufficient to achieve good performance results, especially when combined with adaptive learning rate optimizers, and if computational efficiency is essential. The comparisons show that adaptive optimizers such as Adam and RMSprop remain the most effective choices for this regression task.
+
+Adding L1 and L2 regularization slightly improved the model’s test MSE and enhanced robustness to overfitting, allowing deeper models to perform better. Both the best-performing L1 and L2 models outperformed polynomial regression results. 
+
+
 
 \bibliographystyle{apsrev4-2}
 \bibliography{biblio}
