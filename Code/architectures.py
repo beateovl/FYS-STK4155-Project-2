@@ -73,3 +73,27 @@ def build_architectures_2(depths=(1, 2, 3), widths=(32, 64, 128), out_dim=10):
             sizes = [w]*d + [out_dim]
             arch[name] = sizes
     return arch
+
+
+def build_architectures_from_list(hidden_layer_lists, out_dim=1, include_zero=True):
+    """
+    hidden_layer_lists: list of lists/tuples, e.g.
+        [(50,), (100,),
+         (50, 100), (100, 200),
+         (50, 100, 200)]
+    """
+    arch = {}
+
+    if include_zero:
+        arch["0_Hidden_Layers"] = [out_dim]
+
+    for layers in hidden_layer_lists:
+        depth = len(layers)
+        if depth == 1:
+            name = f"1_Hidden_Layer ({layers[0]})"
+        else:
+            layers_str = ", ".join(str(w) for w in layers)
+            name = f"{depth}_Hidden_Layers ({layers_str})"
+        arch[name] = list(layers) + [out_dim]
+
+    return arch

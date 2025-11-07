@@ -3,6 +3,8 @@ from Code.activations import identity, derivate
 from Code.scheduler import Constant, RMS_prop, Adam
 from Code.ffnn2 import NeuralNetwork as FFNN 
 import itertools, pandas as pd
+from Code.activations import sigmoid, RELU, LRELU
+
 
 def build_nn(input_dim, layer_sizes, act_name):
     n_hidden = max(0, len(layer_sizes) - 1)
@@ -63,3 +65,17 @@ def best_per(df, by=("architecture","activation","optimizer")):
               .sort_values("mse")
               .reset_index(drop=True))
 
+
+activation_tests = {
+    'Sigmoid': sigmoid,
+    'RELU': RELU,
+    'LRELU': LRELU,
+}
+
+rho_val, rho2_val = 0.9, 0.999
+optimizers_to_sweep = {
+    'GD':       (Constant, {}),
+    'SGD':      (Constant, {}),      
+    'RMS_prop': (RMS_prop, {'rho': rho_val}),
+    'Adam':     (Adam,     {'rho': rho_val, 'rho2': rho2_val}),
+}
