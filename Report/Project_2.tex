@@ -625,10 +625,12 @@ Baseline   & Log. Reg.  & --    & --    & -- & -- & -- & 0.9195 \\
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/confusoion_matrix.png}
-    \caption{}
-    \label{fig:g_ols}
+    \includegraphics[width=1\linewidth]{Figures/confusion_matrix.png}
+    \caption{Logistic Regression from scikit-learn's library vs our model's best configurations.}
+    \label{fig:matrix}
 \end{figure}
+
+Our best configuration came out to be two hidden layers with node configuration (128, 256), Adam optimizer, LReLU activation function, $\eta = 3 \cdot 10^{-3}$, $L1 = 10^{-3}$ as seen in table \ref{tab:best_mnist_config}. The accuracy we got from this configuration was 0.9814, after retraining from scratch with 500 epochs. The baseline accuracy from Logistic Regression was 0.9195, so our model outperformed scikit-learn's model. Figure \ref{fig:matrix} shows that both models classify most digits well, but our FFNN confuses far fewer instances between similar digits such as 4/9, 3/5, and 8/9. These misclassifications are most typical among visually ambiguous digits. 
 
 \section{Discussion}
 
@@ -636,7 +638,9 @@ From our initial tests, which involved sweeping over learning rates across diffe
 
 When testing optimizers, activation functions, and architectures against a fixed learning rate, the results indicate that deep architectures (two or three hidden layers) can slightly outperform shallower ones when paired with adaptive optimizers, although the improvement is marginal. The Leaky ReLU activation performed best overall, followed closely by ReLU, while Sigmoid activations tended to converge more slowly and to slightly higher MSEs. Adam remained the most consistent optimizer across configurations, and RMSprop produced comparable results. In contrast, SGD required a higher learning rate ($\eta = 10^{-1}$) to achieve similar test errors, indicating slower convergence dynamics. Overall, the results suggest that adaptive optimizers (Adam, RMSprop) effectively stabilize training and improve performance, while the addition of extra layers yields smaller gains. 
 
-Adding regularization didn't drastically reduce MSE, but results show a more consistent generalization across architectures and optimizers (less spread in test MSE). Adam and RMSProp dominate in the same way as in the tests without regularization, and ReLU and LReLU are the best-performing activations. Interestingly, while the shallow network performed the best without regularization, our top results for regularization shifted towards deeper networks. This indicates that without regularization, the deeper models might have underperformed due to overfitting. Adding L1/L2 terms dealt with the issue of overfitting. 
+Adding regularization didn't drastically reduce MSE, but results show a more consistent generalization across architectures and optimizers (less spread in test MSE). Adam and RMSProp perform similarly to those in the tests without regularization, and ReLU and LReLU are the best-performing activations. Interestingly, while the shallow network performed the best without regularization, our top results for regularization shifted towards deeper networks. This indicates that without regularization, the deeper models might have underperformed due to overfitting. Adding L1/L2 terms dealt with the issue of overfitting. 
+
+For classification, we tested the system in stages to determine the optimal configuration. We applied what we learned from the regression part, especially regarding optimizers and activation functions. We needed to conduct a coarser sweep due to the vast amount of data to process, so we skipped sigmoid, GD, and SGD, which mostly underperformed in regression. In the first stage, we tested various architectures and learning rates using a limited number of epochs. Taking the 10 best reusults we refined the best configuration settings, with regularization terms, showing that a small learning rate ($10^{-3}$) improved generalization slightly. After finding the best parameters, we retrained the model from scratch using these parameters, and a higher epoch improved accuracy slightly, indicating that our method was stable. The deeper layers did not improve the results, suggesting that two moderately wide layers are also sufficient for classification. 
 
 \section{Conclusion}\label{section:conclusion} 
 
@@ -644,7 +648,7 @@ From our initial tests, our best result (\textbf{MSE} $\approx 0.011$) was achie
 
 Finding the optimal combination of architecture, optimizer, and activation function revealed that a wider and shallower network can be sufficient to achieve good performance results, especially when combined with adaptive learning rate optimizers, and if computational efficiency is essential. The comparisons show that adaptive optimizers such as Adam and RMSprop remain the most effective choices for this regression task.
 
-Adding L1 and L2 regularization slightly improved the model’s test MSE and enhanced robustness to overfitting, allowing deeper models to perform better. Both the best-performing L1 and L2 models outperformed polynomial regression results. 
+Adding L1 and L2 regularization slightly improved the model’s test MSE and enhanced robustness to overfitting, allowing deeper models to perform better. Both the best-performing L1 and L2 models outperformed polynomial regression results. Regularization enabled deeper networks to match or surpass the performance of shallower ones, demonstrating the benefits of weight penalization. 
 
 
 
