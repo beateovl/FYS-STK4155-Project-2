@@ -6,6 +6,11 @@ import itertools, pandas as pd
 from Code.activations import sigmoid, RELU, LRELU
 
 
+"""""Helper functions for building networks, optimizers, and 
+running training/evaluation.
+"""""
+
+
 def build_nn(input_dim, layer_sizes, act_name):
     n_hidden = max(0, len(layer_sizes) - 1)
     h = activation_tests[act_name]
@@ -37,6 +42,41 @@ def train_eval_once(opt_name, eta, Xtr, ytr, Xte, yte, input_dim, layer_sizes, a
     ypred = nn.predict(Xte)
     return float(CostOLS(ypred, yte))
 
+#realized I needed a little different one that outputs y_pred, so added a new func instead of changing the one I have in case it broke something
+def train_eval_once_with_pred(
+    opt_name, eta,
+    Xtr, ytr,
+    Xte, yte,
+    input_dim, layer_sizes, act_name,
+    epochs=500, batches=32,
+    l1=0.0, l2=0.0, lam=0.0,
+):
+  
+    # build fresh network
+    nn = build_nn(input_dim, layer_sizes, act_name)
+    nn.reset_weights()
+
+    # optimizer / scheduler
+    sched = make_sched(opt_name, eta)
+
+    # train
+    nn.fit(
+        Xtr, ytr,
+        scheduler=sched,
+        epochs=epochs,
+        batches=batches,
+        l1=l1,
+        l2=l2,
+        lam=lam,
+    )
+
+    # predict + mse
+    y_pred = nn.predict(Xte)
+    mse = CostOLS(y_pred.ravel(), yte.ravel())
+
+    return y_pred
+
+
 
 
 def sweep(archs, acts, opts, etas, Xtr, ytr, Xte, yte, input_dim,
@@ -66,6 +106,7 @@ def best_per(df, by=("architecture","activation","optimizer")):
               .reset_index(drop=True))
 
 
+#the functions above was making trouble without these in here
 activation_tests = {
     'Sigmoid': sigmoid,
     'RELU': RELU,
@@ -79,3 +120,7 @@ optimizers_to_sweep = {
     'RMS_prop': (RMS_prop, {'rho': rho_val}),
     'Adam':     (Adam,     {'rho': rho_val, 'rho2': rho2_val}),
 }
+
+
+
+

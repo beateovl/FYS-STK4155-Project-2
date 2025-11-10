@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 
 
+
 here = Path.cwd()
 candidates = [here] + list(here.parents)
 for p in candidates:
@@ -18,6 +19,8 @@ import autograd.numpy as np
 from Code.ffnn2 import NeuralNetwork as FFNN 
 from Code.activations import sigmoid, identity, derivate 
 from Code.cost import CostOLS, dCostOLS, CostCrossEntropy, dCostCrossEntropy, softmax
+
+
 
 
 
@@ -96,6 +99,7 @@ def run_classification_comparison(optimizer, X_train, Y_train, X_test, y_test,
     l1 = kwargs.pop('l1', 0.0)
     l2 = kwargs.pop('l2', 0.0)
 
+        # Instantiate the scheduler using remaining kwargs (eta, rho, rho2, etc.)
     opt_args = {k: v for k, v in kwargs.items() if k in ("eta", "rho", "rho2", "eps", "beta1", "beta2")}
     scheduler = optimizer(**opt_args)
 
