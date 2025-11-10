@@ -64,7 +64,7 @@ We study both regression and classification tasks. For regression, we minimize t
     \label{eq:runge}
 \end{equation}
 
-and compare the results of our FFNN with earlier regression models. We examine the impact of optimizers, learning rates, and regularization terms on the MSE.
+And compare the results of our FFNN with earlier regression models. We examine the impact of optimizers, learning rates, and regularization terms on the MSE.
 
 The classification implementation focuses on decision boundaries for different classes. Here, we evaluate the model using the softmax cross-entropy loss cost function and assess its performance through classification accuracy, which measures how well our model can separate multiple classes. We also compare our model performance to results using the scikit-learn library. 
 
@@ -77,7 +77,7 @@ Our overarching goal is to evaluate the advantages and disadvantages of using ne
 
 \subsection{Regression background}
 
-Fundamentally, regression problems involve fitting a continuous function to predict the response of a continuous variable based on some independent variables. For neural networks, the objective of regression problems is to find some parameters (weights and biases) that minimize a cost function, allowing the model to make predictions on unseen data \cite{hj_week40}. For regression, the Mean Squared Error is the Mean-Squared Error (MSE). The output layer in an FFNN for regression typically uses a continuous function for continuous outputs. Commonly, this will be the identity function.\\ 
+Fundamentally, regression problems involve fitting a continuous function to predict the response of a continuous variable based on some independent variables. For neural networks, the objective of regression problems is to find some parameters (weights and biases) that minimize a cost function, allowing the model to make predictions on unseen data \cite{hj_week40}. For regression, the Mean Squared Error is the Mean Squared Error (MSE). The output layer in an FFNN for regression typically uses a continuous function for continuous outputs. Commonly, this will be the identity function.\\ 
 
 The specific regression task in this project involves fitting the one-dimensional Runge function, which is identical to the one used in Project 1. We will compare the results obtained using our neural network code with those from the OLS regression results in Project 1. It's challenging to approximate such a highly variable function without encountering issues, especially with a polynomial-based approach, such as overfitting and oscillations. If the data is noisy, the model can fine-tune to the random noise in the training data. The resulting fitted curve can exhibit wild oscillations and give a poor representation of the true function. Increasing the polynomial order (higher complexity) can result in a fitted curve that passes through each training point, driving the training error toward zero while simultaneously causing large oscillations near the endpoints. This will lead to a significant error when evaluating on the test data \cite{wikipedia-runge}. 
 
@@ -381,7 +381,7 @@ Our custom FFNN is constructed as a flexible object-oriented class that can hand
 
 \subsection{Training}
 
-The network training is an iterative process handled by the \texttt{nn.fit} method. For regression tasks, we use MSE, implemented via \texttt{CostOLS}, and for classification we use the Cross-Entropy Loss (or Softmax loss) implemented via \texttt{CostCrossEntropy}. Regularization is implemented into the cost function by passing l1 or l2. The network is trained over a set number of epochs (1000 for regression sweeps and 10 for classification). The batch size is small (32) for SGD benefits. The weights are updated iteratively using the chosen scheduler. 
+The network training is an iterative process handled by the \texttt{nn.fit} method. For regression tasks, we use MSE, implemented via \texttt{CostOLS}, and for classification we use the Cross-Entropy Loss (or Softmax loss) implemented via \texttt{CostCrossEntropy}. Regularization is implemented into the cost function by passing l1 or l2. The network was trained for a fixed number of epochs — typically 500 for regression and 5 for the initial classification sweeps. During the final retraining stage, 100 epochs were used, which provided stable convergence without overfitting. The batch size is moderate (256), for run time benefits. The weights are updated iteratively using the chosen scheduler. 
 
 \subsection{Hyperparameter search}
 
@@ -399,13 +399,11 @@ Eventually, we do a full sweep over all hyperparameters to find the best MSE sco
 
 \subsubsection{ChatGPT}
 
-As in Project 1, I asked ChatGPT if it could help me structure the project and create a plan for organizing it (primarily structuring the code) by uploading the project description and requesting a plan. I didn't use it that much this time, as I found this project less overwhelming and more straightforward. I used it more as a checklist, and I might use it in the end to structure the code I've already created in the main notebook and create general Python files that can be reused later. I like to use ChatGPT as a project manager, where I ask if my results and analysis align with the project description, as a way to help keep track of progress and ensure that I've covered everything. 
-
-I also use ChatGPT to create all the tables and mathematical equations used here, allowing me to format them in neat LaTeX quickly. I also use it to get codes for nice plots. 
+As in Project 1, I used ChatGPT to help structure and plan the project by uploading the description and requesting an outline for organizing the code. I relied on it less this time, using it mainly as a checklist to track progress and verify that my results aligned with the project requirements. Toward the end, I plan to use it to help refactor my main notebook into reusable Python files. I also used ChatGPT to generate LaTeX tables, mathematical equations, and polished plots for clearer presentation. I also used it to make this paragraph short and concise (as I had reached my word-limit). 
 
 \subsubsection{Grammarly}
 
-I have a Grammarly business account through my work that I use for language correction (grammar, spelling, fixing sentences, punctuation, etc). 
+I have a Grammarly business account through my work that I use for language correction (grammar, spelling, fixing sentences, punctuation, suggesting words, etc). 
 	
 \section{Results}\label{section:results} 
 
@@ -614,39 +612,65 @@ Figure \ref{fig:runge} compares the fitted neural network's approximations on th
 \subsection{Classification with Neural Networks: MNIST Benchmark Study}
 \label{subsec:class_results}
 
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1\linewidth]{Figures/regularization.png}
-    \caption{}
-    \label{fig:matrix}
-\end{figure}
+\begin{table}[h!]
+\centering
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.85}
+\small
+\begin{tabular}{l l l c c c}
+\toprule
+Arch. & Opt. & Act. & $\eta$ & $\lambda$ & Acc. \\
+\midrule
+0 HL                & Adam     & ReLU   & $1.0\!\times\!10^{-2}$ & 0.0 & 0.9216 \\
+1 HL (32)           & Adam     & LReLU  & $1.0\!\times\!10^{-2}$ & 0.0 & 0.9610 \\
+1 HL (64)           & Adam     & LReLU  & $1.0\!\times\!10^{-2}$ & 0.0 & 0.9691 \\
+2 HL (128, 256)     & Adam     & LReLU  & $1.0\!\times\!10^{-2}$ & 0.0 & 0.9699 \\
+2 HL (64, 128)      & RMSProp  & ReLU   & $1.0\!\times\!10^{-2}$ & 0.0 & 0.9695 \\
+3 HL (32, 64, 64)   & RMSProp  & LReLU  & $1.0\!\times\!10^{-2}$ & 0.0 & 0.9612 \\
+\bottomrule
+\end{tabular}
+\caption{Top-$k$ configurations per architecture ranked by accuracy from the coarse initial sweep. Each entry shows the best combination of optimizer, activation, and learning rate $\eta$ for a given architecture, with $\lambda = 0$.}
+\label{tab:topk_stageA}
+\end{table}
+
+The initial coarse sweep over architectures, learning rates, activation functions, and optimizers in Stage~A (Table~\ref{tab:topk_stageA}) shows that the accuracy increased steadily from about 92\% for networks with no hidden layers to around 97\% for those with one or two hidden layers, while deeper architectures (three layers) provided no further improvement. LReLu outperformed ReLu mostly across architectures, proving it's usefulness in preventing inactive nodes. 
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=1\linewidth]{Figures/regularization.png}
-    \caption{}
-    \label{fig:matrix}
+    \caption{Top configurations after L₁/L₂ regularization sweep, showing slight improvement at $\lambda \approx 10^{-4}$ }
+    \label{fig:reg}
+\end{figure}
+
+The next stage introduced L1 and L2 regularization to fine-tune the best-performing models from the coarse sweep. As shown in Figure \ref{fig:reg}, small regularization values ($\lambda \approx 10^{-4}$) slightly improved generalization, while stronger penalties reduced accuracy. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/epochs.png}
+    \caption{Retraining accuracy across epochs for the best FFNN. Accuracy peaks near 100 epochs before slightly declining.}
+    \label{fig:epochs}
 \end{figure}
 
 
 \begin{table}[h!]
 \centering
-\setlength{\tabcolsep}{2pt}
+\setlength{\tabcolsep}{1pt}
 \renewcommand{\arraystretch}{0.9}
 \small
 \begin{tabular}{l l l l c c c c}
 \toprule
 Phase & Arch. & Opt. & Act. & $\eta$ & $L_1$ & $L_2$ & Acc. \\
 \midrule
-Stage test & 2HL & Adam & LReLU & $3.0\!\times\!10^{-3}$ & $1.0\!\times\!10^{-3}$ & 0 & 0.9808 \\
-Retrain    & 2HL & Adam & LReLU & $3.0\!\times\!10^{-3}$ & $1.0\!\times\!10^{-3}$ & 0 & 0.9814 \\
+Stage test & 2HL & RMSP. & LReLU & $3.0\!\times\!10^{-3}$ & $1.0\!\times\!10^{-4}$ & 0 & 0.9750 \\
+Retrain    & 2HL & RMSP. & LReLU & $3.0\!\times\!10^{-3}$ & $1.0\!\times\!10^{-4}$ & 0 & 0.9769 \\
 \midrule
 Baseline   & Log. Reg.  & --    & --    & -- & -- & -- & 0.9195 \\
 \bottomrule
 \end{tabular}
-\caption{Best configuration from the testing done to find the best hyperparameters and corresponding final retraining from scratch using identical hyperparameters. Both layers have (128,256) nodes. Baseline is scikit-learn's library results.}
+\caption{Best configuration from the regularization sweep and corresponding retraining using identical hyperparameters. Both layers have (128, 256) nodes. Baseline is scikit-learn's library result.}
 \label{tab:best_mnist_config}
 \end{table}
+
 
 \begin{figure}[h!]
     \centering
@@ -655,7 +679,13 @@ Baseline   & Log. Reg.  & --    & --    & -- & -- & -- & 0.9195 \\
     \label{fig:matrix}
 \end{figure}
 
-Our best configuration came out to be two hidden layers with node configuration (128, 256), Adam optimizer, LReLU activation function, $\eta = 3 \cdot 10^{-3}$, $L1 = 10^{-3}$ as seen in table \ref{tab:best_mnist_config}. The accuracy we got from this configuration was 0.9814, after retraining from scratch with 500 epochs. The baseline accuracy from Logistic Regression was 0.9195, so our model outperformed scikit-learn's model. Figure \ref{fig:matrix} shows that both models classify most digits well, but our FFNN confuses far fewer instances between similar digits such as 4/9, 3/5, and 8/9. These misclassifications are most typical among visually ambiguous digits. 
+
+The refined search over the best architectures showed that the 2-Hidden layer FFNN (128–256 nodes) achieved the highest accuracy with light regularization.
+Table~\ref{tab:best_mnist_config} summarizes the final configuration and baseline comparison.
+The best model used RMSProp, Leaky ReLU, and a learning rate of $\eta=3\times10^{-3}$ with L₁ regularization ($\lambda=10^{-4}$), reaching 97.5\% accuracy during the sweep and 97.7\% after retraining with the ideal number of epochs, found in Figure \ref{fig:epochs}. 
+
+The baseline Logistic Regression reached 91.9\%, so the FFNN clearly outperformed it.
+As shown in Figure~\ref{fig:confuse}, both models classify most digits well, but the FFNN makes far fewer confusions between visually similar digits such as 4/9, 3/5, and 8/9—errors that are typical for ambiguous handwriting.
 
 \section{Discussion}
 
@@ -667,7 +697,7 @@ Adding regularization didn't drastically reduce MSE, but results show a more con
 
 Figure \ref{fig:runge} demonstrate the effects of network design and optimization choices. Increasing the number of layers and the learning rate provides flexibility, enabling the network to capture complex features, but also increases its sensitivity to noise. The simplest case with RMSProp and Sigmoid yields a smooth and conservative fit. We also see that regularization has a significant impact on model behaviour. Both penalty terms suppress the oscillations seen in the unregularized network, improving generalization. L2 in particular leads to the most balanced trade-off between smoothness and accuracy, making it a good stabilizer of noisy data. The figure also matches well with the MSE results - models that visually overfit the noise correspond to higher MSE, while smoother regularized models achieve the lowest MSE score. 
 
-For classification, we tested the system in stages to determine the optimal configuration. We applied what we learned from the regression part, especially regarding optimizers and activation functions. We needed to conduct a coarser sweep due to the vast amount of data to process, so we skipped sigmoid, GD, and SGD, which mostly underperformed in regression. In the first stage, we tested various architectures and learning rates using a limited number of epochs. Taking the 10 best reusults we refined the best configuration settings, with regularization terms, showing that a small learning rate ($10^{-3}$) improved generalization slightly. After finding the best parameters, we retrained the model from scratch using these parameters, and a higher epoch improved accuracy slightly, indicating that our method was stable. The deeper layers did not improve the results, suggesting that two moderately wide layers are also sufficient for classification. 
+For classification, we tested the system in stages to determine the optimal configuration. We applied what we learned from the regression part, especially regarding optimizers and activation functions. Due to the large number of combinations, we conducted a coarser sweep and skipped Sigmoid, GD, and SGD, which had underperformed in regression. In the first stage, we tested various architectures and learning rates using a limited number of epochs. Taking the 10 best results, we refined the best configuration settings, with regularization terms, showing that a small learning rate ($10^{-3}$) improved generalization slightly. After finding the best parameters, we retrained the model from scratch using these parameters, and a higher epoch improved accuracy slightly, indicating that our method was stable. We found that using either too few or too many epochs didn't improve performance. The deeper layers did not improve the results, suggesting that two moderately wide layers are also sufficient for classification. 
 
 \section{Conclusion}\label{section:conclusion} 
 
@@ -679,7 +709,13 @@ Adding L1 and L2 regularization slightly improved the model’s test MSE and enh
 
 All tested networks are capable of approximating the Runge function from noisy samples; however, how well they generalize depends on the architecture, optimization, and regularization. Deeper models and higher learning rates may achieve lower training error, but risk overfitting, while regularization, especially L2, produce the best alignment with the true function as well as enhancing stability. Overall, the combination of the Adam optimizer with the L2 penalty term yields the most robust and accurate approximation among our tested configurations. 
 
+For classification, the final two-layer feedforward neural network (128–256 nodes, RMSProp, Leaky ReLU, $\eta = 3 ×\times 10^{-3}$, $L1 = 10^{-4}$) achieved 97.7 \% test accuracy, an improvement of nearly 6 percentage points over logistic regression. Light L1 regularization improved generalization, while larger regularization or deeper architectures offered no further improvement. The network converged efficiently within ≈ 100 epochs and demonstrated robust generalization, confirming that a moderately deep FFNN can outperform linear models on image classification tasks like MNIST with limited hyperparameter tuning.
 
+Overall, the results confirm that neural networks outperform traditional regression methods when nonlinearity is involved, but the added complexity isn't always necessary. With regression, our model outperformed polynomial regression methods, and managed to capture the complex shape of the Runge function while avoiding the instability often associated with higher-order polynomials. However, this came at the cost of increased sensitivity to hyperparameter choices and higher computational demand.
+
+For classification, our model also outperformed logistic regression. Again, we also needed careful tuning of hyperparameters, and with a large dataset (70 000 datapoints) we had to make some informed decisions on what to test and what to skip. Logistic regression is easy to implement, but FFNN seems better suited for large, high-dimensional data. 
+
+In summary, simpler models (OLS/Ridge/Lasso or Logistic Regression) are robust baselines, but FFNNs provide superior flexibility and accuracy at the cost of higher complexity and reduced interpretability.
 
 \bibliographystyle{apsrev4-2}
 \bibliography{biblio}
