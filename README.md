@@ -9,13 +9,22 @@ Description: Developing and Evaluating Feed-Forward Neural Networks for Regressi
 ```text
 Project2/
 ├─ Code/
+│  ├─ activations.py     # Code for activations + derivatives
+│  ├─ architectures.py   # Code for building layers and nodes
+│  ├─ comparison.py      # Code for 
+│  ├─ cost.py            # 
+│  ├─ data.py            # 
 │  ├─ FFNN2.py           # NN class + forward/backward
-│  ├─ activations.py     # code for activations + derivatives
-│  └─ scheduler.py       # code for optimizers 
+│  ├─ helpers.py         #
+│  ├─ plot.py            #
+│  └─ scheduler.py       #
 │
 ├─ Notebooks/
-│  ├─ Main.ipynb        #Regression parts of the project
-│  ├─ Main_class.ipynb  #Classification parts of the project
+│  ├─ N_and_epoch_test.ipynb #
+│  ├─ part_b_and_c.ipynb     #
+│  ├─ part_d.ipynb           #
+│  ├─ part_e.ipynb           #
+│  └─ part_f.ipynb           #
 │
 ├─ Figures/
 ├─ README.md

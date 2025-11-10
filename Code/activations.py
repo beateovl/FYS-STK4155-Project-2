@@ -1,7 +1,7 @@
 import autograd.numpy as np
 from autograd import elementwise_grad
 
-"Taken from week 43 lecture notes."
+"Taken from week 43 lecture notes. Actovation functions and their derivatives."
 
 # --- Activation Functions ---
 # Identity
