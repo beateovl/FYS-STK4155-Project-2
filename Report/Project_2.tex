@@ -399,7 +399,7 @@ Eventually, we do a full sweep over all hyperparameters to find the best MSE sco
 
 \subsubsection{ChatGPT}
 
-As in Project 1, I used ChatGPT to help structure and plan the project by uploading the description and requesting an outline for organizing the code. I relied on it less this time, using it mainly as a checklist to track progress and verify that my results aligned with the project requirements. Toward the end, I plan to use it to help refactor my main notebook into reusable Python files. I also used ChatGPT to generate LaTeX tables, mathematical equations, and polished plots for clearer presentation. I also used it to make this paragraph short and concise (as I had reached my word-limit). 
+As in Project 1, I used ChatGPT to help structure and plan the project by uploading the description and requesting an outline for organizing the code. I relied on it less this time, using it mainly as a checklist to track progress and verify that my results aligned with the project requirements. I might use it to help restructure my main notebook into reusable Python files. I also used ChatGPT to generate LaTeX tables, mathematical equations, and polished plots for clearer presentation. 
 
 \subsubsection{Grammarly}
 
@@ -633,7 +633,7 @@ Arch. & Opt. & Act. & $\eta$ & $\lambda$ & Acc. \\
 \label{tab:topk_stageA}
 \end{table}
 
-The initial coarse sweep over architectures, learning rates, activation functions, and optimizers in Stage~A (Table~\ref{tab:topk_stageA}) shows that the accuracy increased steadily from about 92\% for networks with no hidden layers to around 97\% for those with one or two hidden layers, while deeper architectures (three layers) provided no further improvement. LReLu outperformed ReLu mostly across architectures, proving it's usefulness in preventing inactive nodes. 
+The initial coarse sweep over architectures, learning rates, activation functions, and optimizers in Stage~A (Table~\ref{tab:topk_stageA}) shows that the accuracy increased steadily from about 92\% for networks with no hidden layers to around 97\% for those with one or two hidden layers, while deeper architectures (three layers) provided no further improvement. LReLu outperformed ReLu mostly across architectures, proving its usefulness in preventing inactive nodes. 
 
 \begin{figure}[h!]
     \centering
@@ -674,7 +674,7 @@ Baseline   & Log. Reg.  & --    & --    & -- & -- & -- & 0.9195 \\
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{Figures/confuse.png}
+    \includegraphics[width=1\linewidth]{Figures/confusion.png}
     \caption{Logistic Regression from scikit-learn's library vs our model's best configurations.}
     \label{fig:matrix}
 \end{figure}
