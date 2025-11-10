@@ -41,11 +41,11 @@
 	
 \begin{abstract}
 
-The goal of this project was to understand how feed-forward neural networks (FFNNs) learn and to compare their performance with that of our earlier regression methods from Project 1 and libraries such as scikit-learn, using the nonlinear Runge function. We also tested multiclass classification using the MNIST datasets. For this, we developed our own neural network code, incorporating forward propagation, backpropagation, and various optimizers, activations, and regularization terms. For the regression method, we used one and two layers, with 50 and 100 hidden nodes.\\
+The goal of this project was to understand how feed-forward neural networks (FFNNs) learn and to compare their performance with that of our earlier regression methods from Project 1 and libraries such as scikit-learn, using the nonlinear Runge function. We also tested multiclass classification using the MNIST datasets. For this, we developed our own neural network code, incorporating forward propagation, backpropagation, and various optimizers, activations, and regularization terms. \\
 
-Our results show that neural networks outperform the Ordinary least squares regression method on the Runge function, especially with two hidden layers and the Adam optimizer. Our results show a mean-squared error (MSE) for our model down to $\approx 3 x 10^{-5}$, compared to $\approx 6.9 x 10^{-2}$ for OLS. Adam and RMSProp trained faster and reached a lower error than plain gradient descent (GD). ReLU and LReLU activations helped prevent slow convergence, while Sigmoid worked but trained more slowly. L2 regularization improved stability and reduced overfitting for deeper networks. \\
+Our results show that neural networks outperform the polynomial regression method on the Runge function, achieving a mean-squared error of 0.010386, compared to 0.098184 for OLS. Adam and RMSProp trained faster and reached a lower error than plain gradient descent (GD). ReLU and LReLU activations helped prevent slow convergence, while Sigmoid worked but trained more slowly. L2 regularization improved stability and reduced overfitting for deeper networks. \\
 
-For MNIST classification, our model reached a number $\approx 96$ \% accuracy, while Scikit-learn's MLP achieved $\approx 97$ \% accuracy, effectively competing on performance. Overall, we observe that neural network implementation offers significant benefits for nonlinear tasks, and the choice of optimizer and activation function has a substantial impact on training quality. 
+For MNIST classification, our model reached a number $\approx 98$ \% accuracy, while Scikit-learn's MLP achieved $\approx 92$ \% accuracy, effectively competing on performance. Overall, we observe that neural network implementation offers significant benefits for nonlinear tasks, and the choice of optimizer and activation function has a substantial impact on training quality. 
 
 \end{abstract}
 
@@ -53,20 +53,22 @@ For MNIST classification, our model reached a number $\approx 96$ \% accuracy, w
 \maketitle
 
 \section{Introduction}
-A central challenge in machine learning today is designing models that can both capture nonlinear relationships in data and generalize effectively to unseen samples. From Project 1, we observed that linear and polynomial regression models perform well for smooth functions but are limited when complexity increases due to numerical instability and overfitting if not properly regularized. Neural networks can address these limitations by learning layers of patterns, where the first layer learns the simplest features and subsequent layers build upon them, increasing complexity. We also meet challenges with neural networks, related to what we saw in Project 1, on how to optimize our algorithm with learning rate, optimizers, and, new to this method, activations. The methods and techniques we studied in Project 1 form the basis of our implementation of neural networks. We rely on the iterative gradient methods explored earlier and focus on hyperparameter selection to improve model performance.
+A central challenge in machine learning is designing models that capture nonlinear relationships while generalizing well to unseen data. From Project 1, we observed that linear and polynomial regression models perform adequately for smooth functions but struggle with complex data due to numerical instability and overfitting when not properly regularized. Neural networks can address these limitations by learning hierarchical representations—where early layers detect simple patterns and deeper layers build increasingly complex ones.
 
-We look at both regression and classification problems and revisit the Runge function from Project 1: 
+However, neural networks also present challenges similar to those in traditional regression, including tuning the learning rate and selecting an appropriate optimizer. They further introduce new design aspects such as activation functions and layer configurations. The goal is to determine whether we observe an improvement in MSE for neural networks. 
+
+We study both regression and classification tasks. For regression, we minimize the MSE cost function and revisit the nonlinear Runge function from Project 1,
 
 \begin{equation}
     f(x) = \frac{1}{1 + 25x^2}
     \label{eq:runge}
 \end{equation}
 
-Using our best performance results from Project 1, we compare them to our results using neural networks, where we explore iterative gradient methods, optimizers, and regularization terms in a similar manner to control performance. The goal is to determine whether we observe an improvement in MSE for neural networks. 
+and compare the results of our FFNN with earlier regression models. We examine the impact of optimizers, learning rates, and regularization terms on the MSE.
 
-The classification implementation focuses on decision boundaries for different classes. Here, we evaluate the model using the softmax cross-entropy loss (our "MSE" for classification) and evaluate its performance through classification accuracy, which assesses how well our model can separate multiple classes. We also compare our model performance to results using the scikit-learn library. 
+The classification implementation focuses on decision boundaries for different classes. Here, we evaluate the model using the softmax cross-entropy loss cost function and assess its performance through classification accuracy, which measures how well our model can separate multiple classes. We also compare our model performance to results using the scikit-learn library. 
 
-Neural networks are an essential part of machine learning, and are easy to implement using scikit-learn's libraries. However, it's critical to understand the structure and how these methods work from the inside, rather than just using libraries without a thorough understanding of them.  In this project, we build an FFNN model from scratch and investigate how architectural choices, such as layer and node counts, optimization methods, activation functions, and regularization terms, affect performance. Our model is flexible and configurable for multiple layers and nodes. We can vary between different activations (focusing on Sigmoid, ReLU, and Leaky ReLU (LReLU)) and optimizers (GD, Stochastic Gradient Descent (SGD), Adam, and RMSProp). For regression, the preferred cost function is the Mean-Squared Error (MSE). We also implement L1 and L2 regularization when needed. 
+Neural networks are an essential part of machine learning, and are easy to implement using scikit-learn's libraries. However, it's critical to understand the structure and how these methods work from the inside, rather than just using libraries without a thorough understanding of them.  In this project, we build an FFNN from scratch to investigate how architectural choices (layers, nodes), optimization algorithms (GD, SGD, Adam, RMSprop), and activation functions (Sigmoid, ReLU, LReLU) influence performance. Regularization terms ($L_1$, $L_2$) are included to study their effects on overfitting. 
 
 Our overarching goal is to evaluate the advantages and disadvantages of using neural networks for both regression and classification, as well as to understand the circumstances under which neural networks offer advantages over simpler methods. An evaluation of the different gradient methods and learning rates used to train the network is also an essential part of our analysis, in addition to the importance of choosing the number of layers and nodes. 
 
@@ -408,6 +410,7 @@ I have a Grammarly business account through my work that I use for language corr
 \section{Results}\label{section:results} 
 
 \subsection{Sweep over number of datapoints and epochs}
+\label{sec:part_b}
 
 We wanted to find the smallest number of datapoints (N) and epochs we could use (for computational efficiency), while still achieving reasonable MSE scores. An initial sweep over N [30, 60, 100, 200, 500, 1000, 2000] and epochs [100, 500, 1000] shows: 
 
@@ -420,7 +423,7 @@ We wanted to find the smallest number of datapoints (N) and epochs we could use 
 Given runtime constraints, N=200 and epochs=500 were chosen for the experiments, providing a good balance between training time and accuracy. 
 
 \subsection{Implementing a Feed-Forward Neural Network for Regression}
-\label{subsec:partb}
+\label{subsec:partb_results}
 
 \begin{figure}[H]
     \centering
@@ -455,6 +458,7 @@ We used different optimizers (GD, SGD, RMSProp, and Adam) and learning rates. Fi
 The best OLS test results from Project 1, polynomial degree 15, achieved \textbf{MSE} $\approx 0.098184$. The neural network then outperformed OLS on almost all of the combinations we tried. 
  
 \subsection{Comparison to Scikit-learn libraries}
+\label{subsec:part_c_results}
 
 To validate the performance of our custom network, we compared it against scikit-learn's MLPRegressor under similar settings. The scikit-learn model produced test MSE scores in the range og 0.0939-0.1022, where the lowest score could be found in both layers, with both optimizers, and mid-range learning rates. The best score (0.0939) is very close to our own results (most of our model's scores were around this value). Again, we see some performance drop with the largest and smallest learning rates, with Adam showing a little more sensitivity to large steps than SGD. These results also confirm our observations from our own model, that the neural network outperforms OLS in capturing nonlinear structure. 
 
@@ -519,6 +523,7 @@ Overall, Adam and RMSprop yielded the most competitive results, particularly in 
 
 
 \subsection{Regularization Study: L1 vs L2 in Neural Network Regression}
+\label{subsec:parte_results}
 
 In the final sweep of the regression part of this task, we perform a sweep over the same parameters as in Section \ref{subsec:part_d_results}, but add regularization: 
 
@@ -597,11 +602,17 @@ NN + $L_1$ & {2HL (50,100), LReLU, RMSprop, $\eta=10^{-2}$,\\ $L_1=10^{-4}$} & 0
 The best configurations after retraining the top-performing networks are summarized in Tables \ref{tab:retrain-l1} and \ref{tab:retrain-l2}, along with the results from polynomial regression. Our model clearly outperforms polynomial regressions in terms of the best test MSE scores. For L1 regularization, the lowest test MSE achieved was 0.01051 for a 2HL–50/100 architecture using Leaky ReLU and RMSprop at $\eta=10^{-2}$ and $L_1=10^{-4}$.
 For L2 regularization, the best model reached an MSE of 0.01039 for a 3HL–50/100/200 network using ReLU and RMSprop with $\eta=10^{-3}$ and $\lambda=10^{-4}$. Both regularized models slightly outperform or match the best unregularized configuration (MSE ≈ 0.01039, as shown in Table \ref{tab:best-no-reg}). 
 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/runge_curve.png}
+    \caption{Summary of the best results from each part. The figure shows how well each configuration (the best from each part) approximates the true function (Runge \ref{eq:runge}).}
+    \label{fig:runge}
+\end{figure}
 
-
-
+Figure \ref{fig:runge} compares the fitted neural network's approximations on the Runge function. The true Runge function is shown as the dashed line, while the blue dots are noisy training data. We see that the orange line (our first approximation in section \ref{subsec:partb_results}) provides a smooth and stable fit close to the true function. The green line (approximations from the best configuration in Section \ref{subsec:part_d_results}) follows the overall trend, but shows light oscillations near the peak, indicating minor overfitting. Adding L1 (red line) and L2 (purple line) smooths the oscillations, with L2 yielding the most stable and accurate approximation. 
 
 \subsection{Classification with Neural Networks: MNIST Benchmark Study}
+\label{subsec:class_results}
 
 
 \begin{table}[h!]
@@ -640,6 +651,8 @@ When testing optimizers, activation functions, and architectures against a fixed
 
 Adding regularization didn't drastically reduce MSE, but results show a more consistent generalization across architectures and optimizers (less spread in test MSE). Adam and RMSProp perform similarly to those in the tests without regularization, and ReLU and LReLU are the best-performing activations. Interestingly, while the shallow network performed the best without regularization, our top results for regularization shifted towards deeper networks. This indicates that without regularization, the deeper models might have underperformed due to overfitting. Adding L1/L2 terms dealt with the issue of overfitting. 
 
+Figure \ref{fig:runge} demonstrate the effects of network design and optimization choices. Increasing the number of layers and the learning rate provides flexibility, enabling the network to capture complex features, but also increases its sensitivity to noise. The simplest case with RMSProp and Sigmoid yields a smooth and conservative fit. We also see that regularization has a significant impact on model behaviour. Both penalty terms suppress the oscillations seen in the unregularized network, improving generalization. L2 in particular leads to the most balanced trade-off between smoothness and accuracy, making it a good stabilizer of noisy data. The figure also matches well with the MSE results - models that visually overfit the noise correspond to higher MSE, while smoother regularized models achieve the lowest MSE score. 
+
 For classification, we tested the system in stages to determine the optimal configuration. We applied what we learned from the regression part, especially regarding optimizers and activation functions. We needed to conduct a coarser sweep due to the vast amount of data to process, so we skipped sigmoid, GD, and SGD, which mostly underperformed in regression. In the first stage, we tested various architectures and learning rates using a limited number of epochs. Taking the 10 best reusults we refined the best configuration settings, with regularization terms, showing that a small learning rate ($10^{-3}$) improved generalization slightly. After finding the best parameters, we retrained the model from scratch using these parameters, and a higher epoch improved accuracy slightly, indicating that our method was stable. The deeper layers did not improve the results, suggesting that two moderately wide layers are also sufficient for classification. 
 
 \section{Conclusion}\label{section:conclusion} 
@@ -649,6 +662,8 @@ From our initial tests, our best result (\textbf{MSE} $\approx 0.011$) was achie
 Finding the optimal combination of architecture, optimizer, and activation function revealed that a wider and shallower network can be sufficient to achieve good performance results, especially when combined with adaptive learning rate optimizers, and if computational efficiency is essential. The comparisons show that adaptive optimizers such as Adam and RMSprop remain the most effective choices for this regression task.
 
 Adding L1 and L2 regularization slightly improved the model’s test MSE and enhanced robustness to overfitting, allowing deeper models to perform better. Both the best-performing L1 and L2 models outperformed polynomial regression results. Regularization enabled deeper networks to match or surpass the performance of shallower ones, demonstrating the benefits of weight penalization. 
+
+All tested networks are capable of approximating the Runge function from noisy samples; however, how well they generalize depends on the architecture, optimization, and regularization. Deeper models and higher learning rates may achieve lower training error, but risk overfitting, while regularization, especially L2, produce the best alignment with the true function as well as enhancing stability. Overall, the combination of the Adam optimizer with the L2 penalty term yields the most robust and accurate approximation among our tested configurations. 
 
 
 
